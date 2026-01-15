@@ -6,7 +6,6 @@ import SummaryScreen from './components/SummaryScreen';
 import StatsScreen from './components/StatsScreen';
 import LiveView from './components/LiveView';
 import DashboardScreen from './components/DashboardScreen';
-import BillboardView from './components/BillboardView';
 import ScorerAuthModal from './components/ScorerAuthModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { MatchSettings, BallEvent, MatchRecord } from './types';
@@ -18,8 +17,7 @@ export enum Screen {
   SUMMARY,
   STATS,
   LIVE,
-  BILLBOARD,
-  RECORD_VIEW // New screen for viewing a single record
+  RECORD_VIEW
 }
 
 const MASTER_CLUB_PIN = '3425';

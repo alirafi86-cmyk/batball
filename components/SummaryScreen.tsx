@@ -4,6 +4,7 @@ import { MatchSettings, BallEvent, BattingStats, BowlingStats, WicketType, BallT
 import { GoogleGenAI } from '@google/genai';
 import { ScorecardTable } from './ScorecardTable';
 import ScorecardImage from './ScorecardImage';
+import html2canvas from 'html2canvas';
 
 interface SummaryScreenProps {
   settings: MatchSettings;
@@ -349,21 +350,26 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
               onClick={async () => {
                 const element = document.querySelector('[data-scorecard-image]');
                 if (element) {
-                  const html2canvas = (await import('html2canvas')).default;
-                  const canvas = await html2canvas(element as HTMLElement, {
-                    backgroundColor: '#ffffff',
-                    scale: 2
-                  });
-                  const image = canvas.toDataURL('image/png');
-                  const link = document.createElement('a');
-                  link.href = image;
-                  link.download = `batball-${showScorecard}-${new Date().toISOString().split('T')[0]}.png`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  try {
+                    const canvas = await html2canvas(element as HTMLElement, {
+                      backgroundColor: '#ffffff',
+                      scale: 2,
+                      logging: false
+                    });
+                    const image = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = image;
+                    link.download = `batball-${showScorecard}-${new Date().toISOString().split('T')[0]}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  } catch (err) {
+                    console.error('Error generating image:', err);
+                    alert('Failed to generate scorecard image');
+                  }
                 }
               }}
-              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2"
+              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-emerald-700 transition disabled:opacity-50"
             >
               <i className="fas fa-download"></i>
               <span>Download Image</span>

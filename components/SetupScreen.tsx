@@ -169,14 +169,17 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
             <input type="number" value={retirementLimit} onChange={e => setRetirementLimit(parseInt(e.target.value) || 0)} className="w-full bg-transparent font-black text-xl text-amber-900 outline-none" />
           </div>
           <div className="bg-gray-100 p-3 rounded-2xl border border-gray-200">
-            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">PIN</label>
-            <input 
-              type="text" 
-              maxLength={4}
-              value={matchPin} 
-              onChange={e => setMatchPin(e.target.value.replace(/\D/g, '').slice(0, 4))} 
-              className="w-full bg-transparent font-black text-xl text-gray-800 outline-none placeholder:text-gray-300" 
-            />
+            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Scorer PIN</label>
+            <div className="flex items-center gap-2">
+              <input 
+                type="password" 
+                maxLength={4}
+                value={matchPin} 
+                onChange={e => setMatchPin(e.target.value.replace(/\D/g, '').slice(0, 4))} 
+                className="flex-1 bg-transparent font-black text-xl text-gray-800 outline-none placeholder:text-gray-300" 
+              />
+              <span className="text-[10px] font-bold text-gray-500">•••• (hidden)</span>
+            </div>
           </div>
         </div>
 

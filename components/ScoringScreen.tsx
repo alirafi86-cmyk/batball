@@ -254,9 +254,6 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish }) => 
     <div className="space-y-4 animate-fadeIn pb-24">
       <div className="flex justify-between items-center bg-white px-5 py-3 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center space-x-2">
-           <button onClick={() => window.location.hash = `#billboard-${settings.matchId}`} className="text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 px-3 py-2 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition">
-            <i className="fas fa-tv mr-1"></i> Billboard
-          </button>
           <div className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl border transition-all duration-500 ${isSaved ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-gray-50 border-gray-100 text-gray-400'}`}>
             <i className={`fas fa-cloud-arrow-up text-[10px] ${isSaved ? 'animate-bounce' : ''}`}></i>
             <span className="text-[8px] font-black uppercase tracking-widest">{isSaved ? 'Saved Locally' : 'Ready Offline'}</span>
