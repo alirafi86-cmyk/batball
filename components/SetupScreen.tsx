@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { MatchSettings, Team, Player } from '../types';
+import { MatchSettings, Team, Player, Squad } from '../types';
+import SquadManager from './SquadManager';
 
 interface SetupScreenProps {
   onStart: (settings: MatchSettings) => void;
@@ -32,6 +33,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
   const [showBulkPaste, setShowBulkPaste] = useState<{ active: boolean, team: 'A' | 'B' }>({ active: false, team: 'A' });
   const [bulkText, setBulkText] = useState('');
   const [activeSearch, setActiveSearch] = useState<{ team: 'A' | 'B', index: number } | null>(null);
+  const [showSquadManager, setShowSquadManager] = useState(false);
+  const [squadTeam, setSquadTeam] = useState<'A' | 'B'>('A');
 
   const fileInputA = useRef<HTMLInputElement>(null);
   const fileInputB = useRef<HTMLInputElement>(null);
@@ -219,7 +222,12 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
                 onChange={e => teamKey === 'A' ? setTeamAName(e.target.value) : setTeamBName(e.target.value)}
               />
             </div>
-            <button onClick={() => setShowBulkPaste({ active: true, team: teamKey })} className="text-[9px] font-black uppercase tracking-widest bg-gray-100 px-3 py-2 rounded-xl">Bulk Add</button>
+            <div className="flex gap-2">
+              <button onClick={() => { setSquadTeam(teamKey); setShowSquadManager(true); }} className="text-[9px] font-black uppercase tracking-widest bg-[#a1cf65] text-[#004e35] px-3 py-2 rounded-xl hover:bg-[#99c955] transition">
+                <i className="fas fa-users mr-1"></i>Squad
+              </button>
+              <button onClick={() => setShowBulkPaste({ active: true, team: teamKey })} className="text-[9px] font-black uppercase tracking-widest bg-gray-100 px-3 py-2 rounded-xl">Bulk Add</button>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
             {(teamKey === 'A' ? teamAPlayers : teamBPlayers).slice(0, playerCount).map((p, i) => (
@@ -275,6 +283,28 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
 
       {/* Backdrop for closing active search */}
       {activeSearch && <div className="fixed inset-0 z-[90]" onClick={() => setActiveSearch(null)}></div>}
+
+      {showSquadManager && (
+        <SquadManager
+          onSquadSelect={(squad) => {
+            if (squadTeam === 'A') {
+              setTeamAPlayers([...squad.players, ...Array(playerCount - squad.players.length).fill(null).map((_, i) => ({
+                id: `temp_${i}`,
+                name: ''
+              }))]);
+              setTeamAName(squad.name);
+            } else {
+              setTeamBPlayers([...squad.players, ...Array(playerCount - squad.players.length).fill(null).map((_, i) => ({
+                id: `temp_${i}`,
+                name: ''
+              }))]);
+              setTeamBName(squad.name);
+            }
+            setShowSquadManager(false);
+          }}
+          onClose={() => setShowSquadManager(false)}
+        />
+      )}
     </div>
   );
 };

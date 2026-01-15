@@ -3,6 +3,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { MatchSettings, BallEvent, BattingStats, BowlingStats, WicketType, BallType, MatchRecord } from '../types';
 import { GoogleGenAI } from '@google/genai';
 import { ScorecardTable } from './ScorecardTable';
+import ScorecardImage from './ScorecardImage';
 
 interface SummaryScreenProps {
   settings: MatchSettings;
@@ -15,6 +16,7 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showScorecard, setShowScorecard] = useState<'summary' | 'full' | null>(null);
 
   const stats = useMemo(() => {
     // Calculate stats for the batting team (innings 1) only for SummaryScreen
@@ -292,8 +294,90 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
             <span>Cloud Offload</span>
           </button>
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => setShowScorecard('summary')} className="py-4 bg-[#a1cf65] text-[#004e35] font-black uppercase text-xs tracking-widest rounded-[2rem] border border-[#99c955] flex items-center justify-center space-x-2 hover:bg-[#99c955] transition">
+            <i className="fas fa-image"></i>
+            <span>Summary Card</span>
+          </button>
+          <button onClick={() => setShowScorecard('full')} className="py-4 bg-yellow-400 text-[#004e35] font-black uppercase text-xs tracking-widest rounded-[2rem] border border-yellow-500 flex items-center justify-center space-x-2 hover:bg-yellow-500 transition">
+            <i className="fas fa-receipt"></i>
+            <span>Full Card</span>
+          </button>
+        </div>
+
         <button onClick={onBackToSetup} className="w-full py-4 text-gray-400 font-black text-[10px] uppercase tracking-widest">Discard Match</button>
       </div>
+
+      {showScorecard && (
+        <div className="fixed inset-0 bg-black/70 z-[300] flex flex-col overflow-y-auto p-4">
+          <div className="flex justify-between items-center mb-4 sticky top-0 bg-black/70 py-2">
+            <h2 className="text-white font-black text-lg">{showScorecard === 'summary' ? 'Summary Card' : 'Full Scorecard'}</h2>
+            <button
+              onClick={() => setShowScorecard(null)}
+              className="text-white text-3xl hover:opacity-70 transition"
+            >
+              ×
+            </button>
+          </div>
+          <div className="flex-1 flex items-center justify-center mb-4">
+            <ScorecardImage
+              record={{
+                id: 'temp',
+                date: Date.now(),
+                settings,
+                history,
+                finalScore: {
+                  runs: stats.totalScore,
+                  wickets: stats.totalWickets,
+                  overs: overCount
+                }
+              }}
+              type={showScorecard}
+              onDownload={() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              onShare={() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+            />
+          </div>
+          <div className="flex gap-3 sticky bottom-0 bg-black/70 py-2">
+            <button
+              onClick={async () => {
+                const element = document.querySelector('[data-scorecard-image]');
+                if (element) {
+                  const html2canvas = (await import('html2canvas')).default;
+                  const canvas = await html2canvas(element as HTMLElement, {
+                    backgroundColor: '#ffffff',
+                    scale: 2
+                  });
+                  const image = canvas.toDataURL('image/png');
+                  const link = document.createElement('a');
+                  link.href = image;
+                  link.download = `batball-${showScorecard}-${new Date().toISOString().split('T')[0]}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              }}
+              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2"
+            >
+              <i className="fas fa-download"></i>
+              <span>Download Image</span>
+            </button>
+            <button
+              onClick={() => setShowScorecard(null)}
+              className="flex-1 px-4 py-3 bg-gray-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2"
+            >
+              <i className="fas fa-times"></i>
+              <span>Close</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

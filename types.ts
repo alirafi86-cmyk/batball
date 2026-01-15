@@ -98,3 +98,27 @@ export interface BowlingStats {
   runs: number;
   wickets: number;
 }
+
+// Squad management for team persistence
+export interface Squad {
+  id: string;
+  name: string;
+  players: Player[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+// Player career statistics across all matches
+export interface PlayerCareerStats {
+  playerId: string;
+  playerName: string;
+  runs: number;
+  balls: number;
+  wickets: number;
+  overs: number;
+  innings: number;
+  average: number;
+  strikeRate: number;
+  bestBowlingOvers: string;
+  bestBowlingRuns: number;
+}

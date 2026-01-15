@@ -1,0 +1,250 @@
+import React, { useRef } from 'react';
+import { MatchRecord, MatchSettings, BallEvent } from '../types';
+import html2canvas from 'html2canvas';
+
+interface ScorecardImageProps {
+  record: MatchRecord;
+  type: 'summary' | 'full';
+  onDownload: () => void;
+  onShare: () => void;
+}
+
+const ScorecardImage: React.FC<ScorecardImageProps> = ({ record, type, onDownload, onShare }) => {
+  const scoreboardRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadImage = async () => {
+    if (!scoreboardRef.current) return;
+
+    try {
+      const canvas = await html2canvas(scoreboardRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false
+      });
+
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `batball-${type}-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      onDownload();
+    } catch (err) {
+      console.error('Error generating image:', err);
+      alert('Failed to generate scorecard image');
+    }
+  };
+
+  const handleShareImage = async () => {
+    if (!scoreboardRef.current) return;
+
+    try {
+      const canvas = await html2canvas(scoreboardRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false
+      });
+
+      canvas.toBlob(async (blob) => {
+        if (blob && navigator.share) {
+          try {
+            const file = new File([blob], `batball-${type}.png`, { type: 'image/png' });
+            await navigator.share({
+              files: [file],
+              title: 'Match Scorecard',
+              text: `Check out this match scorecard!`
+            });
+            onShare();
+          } catch (err) {
+            console.log('Share cancelled or failed');
+          }
+        } else {
+          // Fallback: copy to clipboard
+          blob.stream(); // Trigger download as fallback
+          alert('Image copied to clipboard - paste in WhatsApp');
+        }
+      });
+    } catch (err) {
+      console.error('Error sharing image:', err);
+    }
+  };
+
+  const matchDate = new Date(record.date).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  if (type === 'summary') {
+    return (
+      <div ref={scoreboardRef} className="w-full max-w-md mx-auto p-6 bg-gradient-to-br from-[#004e35] to-[#003a27] rounded-2xl text-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-black mb-1">BATBALL</h1>
+          <p className="text-sm opacity-80">{matchDate}</p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Team A (First Innings) */}
+          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+            <p className="text-xs font-black uppercase tracking-widest opacity-60 mb-2">1st Innings</p>
+            <h2 className="text-2xl font-black mb-3">{record.settings.teamA.name}</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xl font-black">
+                <span>{record.finalScore.runs}</span>
+                <span>/</span>
+                <span>{record.finalScore.wickets}</span>
+              </div>
+              <div className="text-sm opacity-80">
+                Overs: {record.finalScore.overs || '0.0'}
+              </div>
+            </div>
+          </div>
+
+          {/* Team B (Second Innings) */}
+          {record.finalScore.target !== undefined && (
+            <div className="bg-white/10 rounded-xl p-4 backdrop-blur border-2 border-[#a1cf65]">
+              <p className="text-xs font-black uppercase tracking-widest opacity-60 mb-2">2nd Innings</p>
+              <h2 className="text-2xl font-black mb-3">{record.settings.teamB.name}</h2>
+              <div className="space-y-2">
+                <div className="flex justify-between text-lg font-black mb-2">
+                  <span>Target: {record.finalScore.target}</span>
+                </div>
+                <div className="text-xs opacity-80 text-right">
+                  {record.finalScore.winner && (
+                    <p className="text-[#a1cf65] font-black">🏆 {record.finalScore.winner} WON</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Winner */}
+          {record.finalScore.winner && (
+            <div className="bg-[#a1cf65] text-[#004e35] rounded-xl p-4 text-center font-black">
+              <p className="text-sm uppercase tracking-wider opacity-80">Winner</p>
+              <p className="text-2xl">{record.finalScore.winner}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-white/10 text-center text-xs opacity-60">
+          Generated by Batball • {new Date().toLocaleTimeString()}
+        </div>
+      </div>
+    );
+  }
+
+  // Full scorecard
+  return (
+    <div ref={scoreboardRef} className="w-full max-w-2xl mx-auto p-8 bg-white rounded-xl" style={{ fontFamily: 'Arial, sans-serif' }}>
+      <div className="text-center mb-8 pb-6 border-b-2 border-gray-300">
+        <h1 className="text-4xl font-black text-[#004e35] mb-2">BATBALL SCORECARD</h1>
+        <p className="text-gray-600 font-semibold">{matchDate}</p>
+      </div>
+
+      <div className="space-y-8">
+        {/* Match Summary */}
+        <div className="grid grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-2xl font-black text-[#004e35] mb-4">{record.settings.teamA.name}</h2>
+            <div className="space-y-2 text-lg">
+              <div className="flex justify-between font-bold">
+                <span>Runs:</span>
+                <span className="text-2xl font-black">{record.finalScore.runs}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>Wickets:</span>
+                <span className="text-2xl font-black">{record.finalScore.wickets}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>Overs:</span>
+                <span className="text-2xl font-black">{record.finalScore.overs}</span>
+              </div>
+            </div>
+          </div>
+
+          {record.finalScore.target && (
+            <div>
+              <h2 className="text-2xl font-black text-[#004e35] mb-4">{record.settings.teamB.name}</h2>
+              <div className="space-y-2 text-lg">
+                <div className="flex justify-between font-bold">
+                  <span>Target:</span>
+                  <span className="text-2xl font-black">{record.finalScore.target}</span>
+                </div>
+                <div className="flex justify-between font-bold bg-[#a1cf65] p-2 rounded">
+                  <span>Status:</span>
+                  <span>{record.finalScore.winner ? 'Won' : 'Lost/In Progress'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Winner */}
+        {record.finalScore.winner && (
+          <div className="bg-[#004e35] text-white rounded-xl p-6 text-center">
+            <p className="text-sm font-black uppercase tracking-widest opacity-80 mb-2">Match Winner</p>
+            <p className="text-3xl font-black">🏆 {record.finalScore.winner}</p>
+          </div>
+        )}
+
+        {/* Match Details */}
+        <div className="bg-gray-50 rounded-xl p-6 space-y-3 text-sm">
+          <h3 className="font-black text-[#004e35] mb-4">Match Details</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-gray-600 font-bold">Total Overs</p>
+              <p className="font-black text-lg">{record.settings.totalOvers}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 font-bold">Players Per Team</p>
+              <p className="font-black text-lg">{record.settings.playersPerTeam}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 font-bold">Retirement Limit</p>
+              <p className="font-black text-lg">{record.settings.retirementLimit}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 font-bold">Toss Winner</p>
+              <p className="font-black text-lg">{record.settings.tossWinner || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Teams */}
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-black text-[#004e35] mb-3 text-lg">Team A - {record.settings.teamA.name}</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {record.settings.teamA.players.map(p => (
+                <div key={p.id} className="flex items-center space-x-2">
+                  <span className="w-2 h-2 bg-[#004e35] rounded-full"></span>
+                  <span className="font-semibold">{p.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-black text-[#004e35] mb-3 text-lg">Team B - {record.settings.teamB.name}</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {record.settings.teamB.players.map(p => (
+                <div key={p.id} className="flex items-center space-x-2">
+                  <span className="w-2 h-2 bg-[#004e35] rounded-full"></span>
+                  <span className="font-semibold">{p.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-12 pt-6 border-t-2 border-gray-300 text-center text-xs text-gray-500">
+        Generated by Batball Scorer • {new Date().toLocaleString()}
+      </div>
+    </div>
+  );
+};
+
+export default ScorecardImage;
