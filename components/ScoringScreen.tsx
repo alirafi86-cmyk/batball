@@ -100,9 +100,11 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish }) => 
   const target = state.firstInningsScore !== undefined ? state.firstInningsScore + 1 : null;
   const isChaseDone = target !== null && state.score >= target;
   const isInningsOver = state.totalBalls >= settings.totalOvers * 6 || state.wickets >= settings.playersPerTeam - 1 || isChaseDone;
+  const isOversComplete = state.totalBalls >= settings.totalOvers * 6;
 
   const addBall = useCallback((runs: number, type: BallType, wicket: WicketType = WicketType.NONE, retiringPlayerId?: string) => {
     if (state.isMatchOver) return;
+    if (isOversComplete && type === BallType.NORMAL) return; // Prevent adding normal balls after overs are complete
 
     setState(prev => {
       const actualStrikerId = retiringPlayerId || prev.strikerId;

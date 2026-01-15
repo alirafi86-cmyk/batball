@@ -17,13 +17,17 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
   const [copied, setCopied] = useState(false);
 
   const stats = useMemo(() => {
+    // Calculate stats for the batting team (innings 1) only for SummaryScreen
     let totalScore = 0;
     let totalWickets = 0;
     
     history.forEach(ball => {
-      totalScore += ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
-      if (ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED) {
-        totalWickets += 1;
+      // Only count balls from innings 1 (the team whose scorecard is being displayed)
+      if (ball.innings === 1) {
+        totalScore += ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+        if (ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED) {
+          totalWickets += 1;
+        }
       }
     });
     return { totalScore, totalWickets };
@@ -58,7 +62,38 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
   }, [settings, stats, history]);
 
   const handleShareText = () => {
-    const text = `🏏 *BATBALL MATCH RESULT*\n\n*${settings.teamA.name} vs ${settings.teamB.name}*\nScore: ${stats.totalScore}/${stats.totalWickets} (${overCount} overs)\n\n📝 *RECAP:*\n${aiSummary}\n\n_Scored with Batball_`;
+    // Calculate both innings for share text
+    let teamAScore = 0, teamAWickets = 0;
+    let teamBScore = 0, teamBWickets = 0;
+    
+    history.forEach(ball => {
+      const runValue = ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+      const isWicket = ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED;
+      
+      if (ball.innings === 1) {
+        teamAScore += runValue;
+        if (isWicket) teamAWickets += 1;
+      } else {
+        teamBScore += runValue;
+        if (isWicket) teamBWickets += 1;
+      }
+    });
+    
+    const teamABalls = history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length;
+    const teamBBalls = history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length;
+    const teamAOvers = `${Math.floor(teamABalls / 6)}.${teamABalls % 6}`;
+    const teamBOvers = `${Math.floor(teamBBalls / 6)}.${teamBBalls % 6}`;
+    
+    let resultText = '';
+    if (teamBScore > teamAScore) {
+      resultText = `🏆 ${settings.teamB.name} WINS!`;
+    } else if (teamAScore > teamBScore) {
+      resultText = `🏆 ${settings.teamA.name} WINS!`;
+    } else {
+      resultText = `🤝 TIE MATCH!`;
+    }
+    
+    const text = `🏏 *BATBALL MATCH RESULT*\n\n*${settings.teamA.name} vs ${settings.teamB.name}*\n\n📊 *SCORE:*\n${settings.teamA.name}: ${teamAScore}/${teamAWickets} (${teamAOvers})\n${settings.teamB.name}: ${teamBScore}/${teamBWickets} (${teamBOvers})\n\n${resultText}\n\n📝 *RECAP:*\n${aiSummary}\n\n_Scored with Batball_`;
     
     if (navigator.share) {
       navigator.share({ title: 'Match Result', text }).catch(() => {});
@@ -70,12 +105,45 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
   };
 
   const handleCloudBackup = async () => {
+    // Calculate both innings scores and determine winner
+    let teamAScore = 0, teamAWickets = 0;
+    let teamBScore = 0, teamBWickets = 0;
+    
+    history.forEach(ball => {
+      const runValue = ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+      const isWicket = ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED;
+      
+      if (ball.innings === 1) {
+        teamAScore += runValue;
+        if (isWicket) teamAWickets += 1;
+      } else {
+        teamBScore += runValue;
+        if (isWicket) teamBWickets += 1;
+      }
+    });
+    
+    const teamAOvers = `${Math.floor(history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length % 6}`;
+    const teamBOvers = `${Math.floor(history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length % 6}`;
+    
+    let winner = undefined;
+    if (teamBScore > teamAScore) {
+      winner = settings.teamB.name;
+    } else if (teamAScore > teamBScore) {
+      winner = settings.teamA.name;
+    }
+    
     const record: MatchRecord = {
       id: Math.random().toString(36).substr(2, 9),
       date: Date.now(),
       settings,
       history,
-      finalScore: { runs: stats.totalScore, wickets: stats.totalWickets, overs: overCount }
+      finalScore: { 
+        runs: stats.totalScore, 
+        wickets: stats.totalWickets, 
+        overs: overCount,
+        target: teamAScore + 1,
+        winner: winner
+      }
     };
     const filename = `match-data-${settings.teamA.name}.json`;
     const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' });
@@ -100,8 +168,36 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
     }
   };
 
+  // Calculate both innings for complete match summary
+  const teamAStats = (() => {
+    let score = 0, wickets = 0, balls = 0;
+    history.forEach(ball => {
+      if (ball.innings === 1) {
+        score += ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+        if (ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED) wickets += 1;
+        if (ball.type === BallType.NORMAL) balls += 1;
+      }
+    });
+    return { score, wickets, overs: `${Math.floor(balls / 6)}.${balls % 6}` };
+  })();
+  
+  const teamBStats = (() => {
+    let score = 0, wickets = 0, balls = 0;
+    history.forEach(ball => {
+      if (ball.innings === 2) {
+        score += ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+        if (ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED) wickets += 1;
+        if (ball.type === BallType.NORMAL) balls += 1;
+      }
+    });
+    return { score, wickets, overs: `${Math.floor(balls / 6)}.${balls % 6}` };
+  })();
+  
+  const matchWinner = teamBStats.score > teamAStats.score ? settings.teamB.name : (teamAStats.score > teamBStats.score ? settings.teamA.name : 'Tie');
+
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
+      {/* Team A (Innings 1) Score Card */}
       <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-emerald-100 text-center relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4">
            <button onClick={handleCloudBackup} className="text-[#a1cf65] hover:text-[#004e35] transition flex flex-col items-center" title="Cloud Backup">
@@ -114,9 +210,31 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
             <img src={settings.teamA.logo} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-emerald-500" />
           )}
         </div>
-        <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Match Result</h2>
+        <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Innings 1</h2>
         <h3 className="text-3xl font-black text-gray-800 mb-1">{settings.teamA.name}</h3>
-        <p className="text-5xl font-black text-emerald-700 mb-4">{stats.totalScore}/{stats.totalWickets} <span className="text-xl text-gray-400 font-normal">({overCount})</span></p>
+        <p className="text-5xl font-black text-emerald-700 mb-4">{teamAStats.score}/{teamAStats.wickets} <span className="text-xl text-gray-400 font-normal">({teamAStats.overs})</span></p>
+      </div>
+      
+      {/* Team B (Innings 2) Score Card */}
+      {teamBStats.score > 0 || history.some(b => b.innings === 2) ? (
+        <div className="bg-blue-50 p-8 rounded-[2.5rem] shadow-sm border border-blue-100 text-center relative overflow-hidden">
+          <div className="flex justify-center mb-4">
+            {settings.teamB.logo && (
+              <img src={settings.teamB.logo} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-blue-500" />
+            )}
+          </div>
+          <h2 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Innings 2 (Chase)</h2>
+          <h3 className="text-3xl font-black text-gray-800 mb-1">{settings.teamB.name}</h3>
+          <p className="text-5xl font-black text-blue-700 mb-4">{teamBStats.score}/{teamBStats.wickets} <span className="text-xl text-gray-400 font-normal">({teamBStats.overs})</span></p>
+          <p className="text-sm font-bold text-blue-600 mt-2">Target: {teamAStats.score + 1}</p>
+        </div>
+      ) : null}
+      
+      {/* Match Result */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-8 rounded-[2.5rem] shadow-md border-2 border-amber-200 text-center">
+        <h2 className="text-2xl font-black text-amber-900 uppercase tracking-tighter mb-2">🏆 Match Result</h2>
+        <p className="text-3xl font-black text-amber-700">{matchWinner} Wins!</p>
+        <p className="text-sm font-bold text-amber-600 mt-2">{teamAStats.score} vs {teamBStats.score}</p>
       </div>
 
       <div className="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100 relative">
@@ -136,13 +254,30 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
       />
 
       <div className="flex flex-col space-y-3">
-        <button onClick={() => onSave({
-          id: Math.random().toString(36).substr(2, 9),
-          date: Date.now(),
-          settings,
-          history,
-          finalScore: { runs: stats.totalScore, wickets: stats.totalWickets, overs: overCount }
-        })} className="w-full py-5 bg-[#004e35] text-white font-black text-lg rounded-[2.5rem] shadow-xl hover:bg-emerald-700 transition flex items-center justify-center space-x-3">
+        <button onClick={() => {
+          // Calculate winner for save
+          let teamAScore = 0, teamAWickets = 0;
+          let teamBScore = 0, teamBWickets = 0;
+          history.forEach(ball => {
+            const runValue = ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+            const isWicket = ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED;
+            if (ball.innings === 1) {
+              teamAScore += runValue;
+              if (isWicket) teamAWickets += 1;
+            } else {
+              teamBScore += runValue;
+              if (isWicket) teamBWickets += 1;
+            }
+          });
+          const winner = teamBScore > teamAScore ? settings.teamB.name : (teamAScore > teamBScore ? settings.teamA.name : undefined);
+          onSave({
+            id: Math.random().toString(36).substr(2, 9),
+            date: Date.now(),
+            settings,
+            history,
+            finalScore: { runs: teamAStats.score, wickets: teamAStats.wickets, overs: teamAStats.overs, target: teamAStats.score + 1, winner }
+          });
+        }} className="w-full py-5 bg-[#004e35] text-white font-black text-lg rounded-[2.5rem] shadow-xl hover:bg-emerald-700 transition flex items-center justify-center space-x-3">
           <i className="fas fa-floppy-disk text-[#a1cf65]"></i>
           <span>SAVE TO CLUB HUB</span>
         </button>
