@@ -1,0 +1,7 @@
+{
+  "name": "Batball",
+  "description": "Professional cricket scoring for local clubs. Real-time ball-by-ball tracking, team branding, and live broadcasts.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
