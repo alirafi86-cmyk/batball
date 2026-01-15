@@ -22,7 +22,7 @@ export enum Screen {
   RECORD_VIEW // New screen for viewing a single record
 }
 
-const MASTER_CLUB_PIN = '1234';
+const MASTER_CLUB_PIN = '3425';
 
 const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.DASHBOARD);
