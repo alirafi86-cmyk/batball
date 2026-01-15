@@ -50,7 +50,10 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish }) => 
       ...registry.filter((m: any) => m.matchId !== settings.matchId),
       {
         matchId: settings.matchId,
-        settings,
+        settings: {
+          ...settings,
+          scorerPin: undefined  // Don't expose scorer PIN in registry
+        },
         score: state.score,
         wickets: state.wickets,
         overs: currentOvers,

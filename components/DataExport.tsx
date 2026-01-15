@@ -7,11 +7,20 @@ interface DataExportProps {
 
 const DataExport: React.FC<DataExportProps> = ({ records }) => {
   const handleExportJSON = () => {
+    // Remove scorer PIN from exported data for security
+    const sanitizedRecords = records.map(record => ({
+      ...record,
+      settings: {
+        ...record.settings,
+        scorerPin: undefined
+      }
+    }));
+
     const dataToExport = {
       exportDate: new Date().toISOString(),
       version: '1.0.0',
-      totalMatches: records.length,
-      matches: records
+      totalMatches: sanitizedRecords.length,
+      matches: sanitizedRecords
     };
 
     const jsonString = JSON.stringify(dataToExport, null, 2);
