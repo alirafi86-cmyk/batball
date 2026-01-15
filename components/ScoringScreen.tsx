@@ -339,7 +339,7 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish }) => 
         </div>
       </div>
 
-      {!state.isMatchOver ? (
+      {!state.isMatchOver && !isInningsOver ? (
         <>
           <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-200 flex justify-between items-center">
             <div className="flex items-center space-x-3">
@@ -388,8 +388,12 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish }) => 
         </>
       ) : (
         <div className="bg-amber-100 border-2 border-amber-200 p-8 rounded-[2.5rem] text-center animate-bounce">
-          <h3 className="text-2xl font-black text-amber-900 uppercase italic">Innings Over!</h3>
-          <p className="text-sm font-bold text-amber-800/60 mt-2">Finish the match or start 2nd innings below.</p>
+          <h3 className="text-2xl font-black text-amber-900 uppercase italic">
+            {state.currentInnings === 1 ? 'First Innings Complete!' : 'Innings Over!'}
+          </h3>
+          <p className="text-sm font-bold text-amber-800/60 mt-2">
+            {state.currentInnings === 1 ? 'Score: ' + state.score + '/' + state.wickets : state.isMatchOver ? 'Match finished.' : 'Continue below.'}
+          </p>
         </div>
       )}
 
