@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MatchSettings, MatchRecord } from '../types';
 import DataExport from './DataExport';
+import SquadManager from './SquadManager';
 
 interface DashboardScreenProps {
   onStartNew: () => void;
@@ -23,6 +24,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
   authorizedMatchIds 
 }) => {
   const [liveMatches, setLiveMatches] = useState<any[]>([]);
+  const [showSquadManager, setShowSquadManager] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -157,8 +159,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-black text-[#004e35]">{rec.finalScore.runs}/{rec.finalScore.wickets}</p>
-                <p className="text-[9px] text-gray-400 font-black uppercase">{rec.finalScore.overs} OV</p>
+                <div className="mb-2">
+                  <p className="text-sm font-black text-[#004e35]">
+                    {rec.finalScore.teamAScore?.runs || rec.finalScore.runs}/{rec.finalScore.teamAScore?.wickets || rec.finalScore.wickets}
+                  </p>
+                  {rec.finalScore.teamBScore && (
+                    <p className="text-sm font-black text-blue-700">
+                      {rec.finalScore.teamBScore.runs}/{rec.finalScore.teamBScore.wickets}
+                    </p>
+                  )}
+                </div>
+                {rec.finalScore.winner && (
+                  <p className="text-[10px] font-black text-amber-600 uppercase bg-amber-50 px-2 py-1 rounded">
+                    🏆 {rec.finalScore.winner}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -169,6 +184,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
       </section>
 
       <DataExport records={recentRecords} />
+
+      {/* Squad Manager Button */}
+      <section className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-blue-100">
+        <button 
+          onClick={() => setShowSquadManager(true)}
+          className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition flex items-center justify-center space-x-2 hover:bg-blue-700"
+        >
+          <i className="fas fa-users"></i>
+          <span>Manage Team Squads</span>
+        </button>
+      </section>
+
+      {showSquadManager && (
+        <SquadManager
+          onSquadSelect={() => setShowSquadManager(false)}
+          onClose={() => setShowSquadManager(false)}
+        />
+      )}
     </div>
   );
 };

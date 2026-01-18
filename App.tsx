@@ -126,7 +126,7 @@ const App: React.FC = () => {
           <SetupScreen onStart={(s) => { setMatchSettings(s); setCurrentScreen(Screen.SCORING); }} />
         )}
         {currentScreen === Screen.SCORING && matchSettings && (
-          <ScoringScreen settings={matchSettings} onFinish={(h) => { setFinalHistory(h); setCurrentScreen(Screen.SUMMARY); }} />
+          <ScoringScreen settings={matchSettings} onFinish={(h) => { setFinalHistory(h); setCurrentScreen(Screen.SUMMARY); }} onUpdateSettings={setMatchSettings} />
         )}
         {currentScreen === Screen.SUMMARY && matchSettings && (
           <SummaryScreen settings={matchSettings} history={finalHistory} onSave={handleSaveMatch} onBackToSetup={handleReset} />

@@ -1,10 +1,10 @@
 
-import React, { useMemo, useEffect, useState } from 'react';
-import { MatchSettings, BallEvent, BattingStats, BowlingStats, WicketType, BallType, MatchRecord } from '../types';
-import { GoogleGenAI } from '@google/genai';
+import React, { useMemo, useState } from 'react';
+import { MatchSettings, BallEvent, WicketType, BallType, MatchRecord } from '../types';
 import { ScorecardTable } from './ScorecardTable';
 import ScorecardImage from './ScorecardImage';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface SummaryScreenProps {
   settings: MatchSettings;
@@ -14,55 +14,27 @@ interface SummaryScreenProps {
 }
 
 const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave, onBackToSetup }) => {
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showScorecard, setShowScorecard] = useState<'summary' | 'full' | null>(null);
+
+  const inningsOneHistory = useMemo(() => history.filter(b => b.innings === 1), [history]);
+  const inningsTwoHistory = useMemo(() => history.filter(b => b.innings === 2), [history]);
 
   const stats = useMemo(() => {
     // Calculate stats for the batting team (innings 1) only for SummaryScreen
     let totalScore = 0;
     let totalWickets = 0;
     
-    history.forEach(ball => {
-      // Only count balls from innings 1 (the team whose scorecard is being displayed)
-      if (ball.innings === 1) {
-        totalScore += ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
-        if (ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED) {
-          totalWickets += 1;
-        }
+    inningsOneHistory.forEach(ball => {
+      totalScore += ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
+      if (ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED) {
+        totalWickets += 1;
       }
     });
     return { totalScore, totalWickets };
-  }, [history]);
+  }, [inningsOneHistory]);
 
-  const overCount = `${Math.floor(history.filter(b => b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.type === BallType.NORMAL).length % 6}`;
-
-  useEffect(() => {
-    const generateAISummary = async () => {
-      if (history.length === 0) return;
-      setIsLoadingSummary(true);
-      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const matchData = {
-          teamA: settings.teamA.name,
-          teamB: settings.teamB.name,
-          score: `${stats.totalScore}/${stats.totalWickets}`,
-          overs: overCount,
-        };
-        const response = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
-          contents: `Summarize this local cricket match as a sports journalist: ${JSON.stringify(matchData)}. Include the final score ${stats.totalScore}/${stats.totalWickets} in ${overCount} overs. Make it sound exciting for a WhatsApp group.`
-        });
-        setAiSummary(response.text || "Match finished!");
-      } catch (e) {
-        setAiSummary(`Excellent match! ${settings.teamA.name} finished at ${stats.totalScore}/${stats.totalWickets} in ${overCount} overs.`);
-      } finally {
-        setIsLoadingSummary(false);
-      }
-    };
-    generateAISummary();
-  }, [settings, stats, history]);
+  const overCount = `${Math.floor(inningsOneHistory.filter(b => b.type === BallType.NORMAL).length / 6)}.${inningsOneHistory.filter(b => b.type === BallType.NORMAL).length % 6}`;
 
   const handleShareText = () => {
     // Calculate both innings for share text
@@ -95,8 +67,17 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
     } else {
       resultText = `🤝 TIE MATCH!`;
     }
+
+    // Calculate recap text
+    const matchWinner = teamBScore > teamAScore ? settings.teamB.name : (teamAScore > teamBScore ? settings.teamA.name : 'Tie');
+    const firstInningsLine = `${settings.teamA.name} posted ${teamAScore}/${teamAWickets} in ${teamAOvers} overs.`;
+    const secondInningsLine = inningsTwoHistory.length > 0
+      ? `${settings.teamB.name} replied with ${teamBScore}/${teamBWickets} in ${teamBOvers} overs.`
+      : `${settings.teamB.name} is yet to bat.`;
+    const resultLine = matchWinner === 'Tie' ? 'Match tied.' : `${matchWinner} take the game.`;
+    const recapText = `${firstInningsLine} ${secondInningsLine} ${resultLine}`;
     
-    const text = `🏏 *BATBALL MATCH RESULT*\n\n*${settings.teamA.name} vs ${settings.teamB.name}*\n\n📊 *SCORE:*\n${settings.teamA.name}: ${teamAScore}/${teamAWickets} (${teamAOvers})\n${settings.teamB.name}: ${teamBScore}/${teamBWickets} (${teamBOvers})\n\n${resultText}\n\n📝 *RECAP:*\n${aiSummary}\n\n_Scored with Batball_`;
+    const text = `🏏 *BATBALL MATCH RESULT*\n\n*${settings.teamA.name} vs ${settings.teamB.name}*\n\n📊 *SCORE:*\n${settings.teamA.name}: ${teamAScore}/${teamAWickets} (${teamAOvers})\n${settings.teamB.name}: ${teamBScore}/${teamBWickets} (${teamBOvers})\n\n${resultText}\n\n📝 *RECAP:*\n${recapText}\n\n_Scored with Batball_`;
     
     if (navigator.share) {
       navigator.share({ title: 'Match Result', text }).catch(() => {});
@@ -145,7 +126,9 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
         wickets: stats.totalWickets, 
         overs: overCount,
         target: teamAScore + 1,
-        winner: winner
+        winner: winner,
+        teamAScore: { runs: teamAScore, wickets: teamAWickets, overs: teamAOvers },
+        teamBScore: teamBScore > 0 ? { runs: teamBScore, wickets: teamBWickets, overs: teamBOvers } : undefined
       }
     };
     const filename = `match-data-${settings.teamA.name}.json`;
@@ -168,6 +151,197 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
       a.href = url;
       a.download = filename;
       a.click();
+    }
+  };
+
+  const downloadScorecardImage = async () => {
+    const element = document.querySelector('[data-scorecard-image]');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element as HTMLElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false
+      });
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `batball-${showScorecard || 'scorecard'}-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Error generating image:', err);
+      alert('Failed to generate scorecard image');
+    }
+  };
+
+  const shareScorecardImage = async () => {
+    const element = document.querySelector('[data-scorecard-image]');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element as HTMLElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false
+      });
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+      if (blob && navigator.share && navigator.canShare) {
+        const file = new File([blob], `batball-${showScorecard || 'scorecard'}.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Batball Scorecard', text: 'Match scorecard ready to share.' });
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+          return;
+        }
+      }
+
+      // Fallback to download
+      await downloadScorecardImage();
+    } catch (err) {
+      console.error('Error sharing image:', err);
+      alert('Unable to share scorecard image');
+    }
+  };
+
+  const generatePDF = async () => {
+    try {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPos = 15;
+      const lineHeight = 7;
+      const margin = 12;
+      const contentWidth = pageWidth - 2 * margin;
+
+      // Title
+      pdf.setFontSize(18);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('BATBALL MATCH SCORECARD', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+
+      // Date
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 8;
+
+      // Team A Section
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('INNINGS 1', margin, yPos);
+      yPos += 6;
+
+      pdf.setFontSize(14);
+      pdf.text(settings.teamA.name, margin, yPos);
+      pdf.setFontSize(24);
+      pdf.setTextColor(0, 78, 53);
+      pdf.text(`${teamAStats.score}/${teamAStats.wickets}`, pageWidth - margin - 20, yPos, { align: 'right' });
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`(${teamAStats.overs} overs)`, pageWidth - margin - 20, yPos + 6, { align: 'right' });
+      yPos += 15;
+
+      // Team B Section
+      if (inningsTwoHistory.length > 0) {
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('INNINGS 2 (CHASE)', margin, yPos);
+        yPos += 6;
+
+        pdf.setFontSize(14);
+        pdf.text(settings.teamB.name, margin, yPos);
+        pdf.setFontSize(24);
+        pdf.setTextColor(0, 78, 53);
+        pdf.text(`${teamBStats.score}/${teamBStats.wickets}`, pageWidth - margin - 20, yPos, { align: 'right' });
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`(${teamBStats.overs} overs)`, pageWidth - margin - 20, yPos + 6, { align: 'right' });
+        yPos += 15;
+      }
+
+      // Result
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('MATCH RESULT', margin, yPos);
+      yPos += 6;
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`Winner: ${matchWinner}`, margin, yPos);
+      yPos += 10;
+
+      // Batting Stats
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${settings.teamA.name} - BATTING`, margin, yPos);
+      yPos += 6;
+
+      const battingData: any[] = [];
+      settings.teamA.players.forEach(p => {
+        const playerHistory = inningsOneHistory.filter(b => b.strikerId === p.id);
+        if (playerHistory.length > 0) {
+          const runs = playerHistory.reduce((sum, b) => sum + b.runs, 0);
+          const balls = playerHistory.filter(b => b.type === BallType.NORMAL).length;
+          battingData.push([p.name, runs.toString(), balls.toString(), ((runs / balls) * 100).toFixed(1)]);
+        }
+      });
+
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      battingData.slice(0, 5).forEach(row => {
+        if (yPos > pageHeight - 15) {
+          pdf.addPage();
+          yPos = 15;
+        }
+        pdf.text(`${row[0]}: ${row[1]} (${row[2]} balls)`, margin, yPos);
+        yPos += 5;
+      });
+
+      yPos += 5;
+
+      // Bowling Stats
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${settings.teamB.name} - BOWLING`, margin, yPos);
+      yPos += 6;
+
+      const bowlingData: any[] = [];
+      settings.teamB.players.forEach(p => {
+        const playerHistory = inningsOneHistory.filter(b => b.bowlerId === p.id);
+        if (playerHistory.length > 0) {
+          const runs = playerHistory.reduce((sum, b) => sum + b.runs + (b.type !== BallType.NORMAL ? 1 : 0), 0);
+          const wickets = playerHistory.filter(b => b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED).length;
+          const balls = playerHistory.filter(b => b.type === BallType.NORMAL).length;
+          const overs = Math.floor(balls / 6) + (balls % 6) / 10;
+          bowlingData.push([p.name, wickets.toString(), runs.toString(), overs.toFixed(1)]);
+        }
+      });
+
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      bowlingData.slice(0, 5).forEach(row => {
+        if (yPos > pageHeight - 15) {
+          pdf.addPage();
+          yPos = 15;
+        }
+        pdf.text(`${row[0]}: ${row[1]}/w, ${row[2]} runs (${row[3]} overs)`, margin, yPos);
+        yPos += 5;
+      });
+
+      const filename = `batball-${settings.teamA.name}-vs-${settings.teamB.name}-${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(filename);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to generate PDF');
     }
   };
 
@@ -197,6 +371,15 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
   })();
   
   const matchWinner = teamBStats.score > teamAStats.score ? settings.teamB.name : (teamAStats.score > teamBStats.score ? settings.teamA.name : 'Tie');
+
+  const recapText = useMemo(() => {
+    const firstInningsLine = `${settings.teamA.name} posted ${teamAStats.score}/${teamAStats.wickets} in ${teamAStats.overs} overs.`;
+    const secondInningsLine = inningsTwoHistory.length > 0
+      ? `${settings.teamB.name} replied with ${teamBStats.score}/${teamBStats.wickets} in ${teamBStats.overs} overs.`
+      : `${settings.teamB.name} is yet to bat.`;
+    const resultLine = matchWinner === 'Tie' ? 'Match tied.' : `${matchWinner} take the game.`;
+    return `${firstInningsLine} ${secondInningsLine} ${resultLine}`;
+  }, [settings.teamA.name, settings.teamB.name, teamAStats, teamBStats, inningsTwoHistory.length, matchWinner]);
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
@@ -242,7 +425,7 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
 
       <div className="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100 relative">
         <h4 className="font-black text-emerald-800 mb-2 flex items-center text-[10px] uppercase tracking-widest"><i className="fas fa-newspaper mr-2"></i> Match Recap</h4>
-        {isLoadingSummary ? <div className="text-emerald-600 animate-pulse text-xs font-bold">Writing report...</div> : <p className="text-gray-700 italic leading-relaxed text-sm">{aiSummary}</p>}
+        <p className="text-gray-700 italic leading-relaxed text-sm">{recapText}</p>
         
         <button onClick={handleShareText} className="absolute top-4 right-4 bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
            <i className={`fas ${copied ? 'fa-check' : 'fa-share-nodes'}`}></i>
@@ -252,39 +435,44 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
       <ScorecardTable 
         players={settings.teamA.players} 
         opponentPlayers={settings.teamB.players}
-        history={history} 
+        history={inningsOneHistory} 
         teamName={settings.teamA.name}
       />
 
+      {inningsTwoHistory.length > 0 && (
+        <ScorecardTable 
+          players={settings.teamB.players} 
+          opponentPlayers={settings.teamA.players}
+          history={inningsTwoHistory} 
+          teamName={settings.teamB.name}
+        />
+      )}
+
       <div className="flex flex-col space-y-3">
         <button onClick={() => {
-          // Calculate winner for save
-          let teamAScore = 0, teamAWickets = 0;
-          let teamBScore = 0, teamBWickets = 0;
-          history.forEach(ball => {
-            const runValue = ball.runs + (ball.type !== BallType.NORMAL ? 1 : 0);
-            const isWicket = ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED;
-            if (ball.innings === 1) {
-              teamAScore += runValue;
-              if (isWicket) teamAWickets += 1;
-            } else {
-              teamBScore += runValue;
-              if (isWicket) teamBWickets += 1;
-            }
-          });
-          const winner = teamBScore > teamAScore ? settings.teamB.name : (teamAScore > teamBScore ? settings.teamA.name : undefined);
+          const winner = teamBStats.score > teamAStats.score ? settings.teamB.name : (teamAStats.score > teamBStats.score ? settings.teamA.name : undefined);
           onSave({
             id: Math.random().toString(36).substr(2, 9),
             date: Date.now(),
             settings,
             history,
-            finalScore: { runs: teamAStats.score, wickets: teamAStats.wickets, overs: teamAStats.overs, target: teamAStats.score + 1, winner }
+            finalScore: {
+              runs: teamAStats.score,
+              wickets: teamAStats.wickets,
+              overs: teamAStats.overs,
+              target: teamAStats.score + 1,
+              winner,
+              teamAScore: { runs: teamAStats.score, wickets: teamAStats.wickets, overs: teamAStats.overs },
+              teamBScore: inningsTwoHistory.length > 0 ? { runs: teamBStats.score, wickets: teamBStats.wickets, overs: teamBStats.overs } : undefined
+            }
           });
         }} className="w-full py-5 bg-[#004e35] text-white font-black text-lg rounded-[2.5rem] shadow-xl hover:bg-emerald-700 transition flex items-center justify-center space-x-3">
           <i className="fas fa-floppy-disk text-[#a1cf65]"></i>
           <span>SAVE TO CLUB HUB</span>
         </button>
         
+        <div className="text-center text-[10px] text-gray-500 font-bold px-2 py-2">💡 Save to Club Hub, then share scorecard from history</div>
+
         <div className="flex space-x-3">
           <button onClick={handleShareText} className="flex-1 py-4 bg-emerald-50 text-emerald-700 font-black uppercase text-xs tracking-widest rounded-[2rem] border border-emerald-100 flex items-center justify-center space-x-2">
             <i className="fab fa-whatsapp"></i>
@@ -347,28 +535,14 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
           </div>
           <div className="flex gap-3 sticky bottom-0 bg-black/70 py-2">
             <button
-              onClick={async () => {
-                const element = document.querySelector('[data-scorecard-image]');
-                if (element) {
-                  try {
-                    const canvas = await html2canvas(element as HTMLElement, {
-                      backgroundColor: '#ffffff',
-                      scale: 2,
-                      logging: false
-                    });
-                    const image = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.href = image;
-                    link.download = `batball-${showScorecard}-${new Date().toISOString().split('T')[0]}.png`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  } catch (err) {
-                    console.error('Error generating image:', err);
-                    alert('Failed to generate scorecard image');
-                  }
-                }
-              }}
+              onClick={shareScorecardImage}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              <i className="fas fa-share-nodes"></i>
+              <span>Share Image</span>
+            </button>
+            <button
+              onClick={downloadScorecardImage}
               className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-emerald-700 transition disabled:opacity-50"
             >
               <i className="fas fa-download"></i>

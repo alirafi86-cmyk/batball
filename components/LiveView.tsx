@@ -41,7 +41,27 @@ const LiveView: React.FC<LiveViewProps> = ({ settings, isAuthorized, onManage })
   }
 
   const currentOvers = `${Math.floor(state.totalBalls / 6)}.${state.totalBalls % 6}`;
-  const recentBalls = state.matchHistory.slice(-8);
+  const currentOverBalls = useMemo(() => {
+    // Calculate how many legal balls into the current over
+    const ballsInCurrentOver = state.totalBalls % 6;
+    if (ballsInCurrentOver === 0) return []; // No balls in current over yet
+
+    const overBalls = [] as typeof state.matchHistory;
+    let legal = 0;
+
+    for (let i = state.matchHistory.length - 1; i >= 0; i--) {
+      const ball = state.matchHistory[i];
+      if (ball.innings !== state.currentInnings) continue;
+      if (ball.wicket === WicketType.RETIRED) continue; // Do not visualize retire markers as balls
+
+      overBalls.unshift(ball);
+      if (ball.type === BallType.NORMAL) {
+        legal += 1;
+        if (legal === ballsInCurrentOver) break; // Stop after current over's legal balls
+      }
+    }
+    return overBalls;
+  }, [state.matchHistory, state.currentInnings, state.totalBalls]);
 
   const handleOpenBillboard = () => {
     window.location.hash = `#billboard-${settings.matchId}`;
@@ -122,7 +142,7 @@ const LiveView: React.FC<LiveViewProps> = ({ settings, isAuthorized, onManage })
           <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Recent Balls</h4>
             <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-2">
-              {[...recentBalls].reverse().map(ball => {
+              {[...currentOverBalls].reverse().map(ball => {
                 const isWicket = ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED;
                 const isRetired = ball.wicket === WicketType.RETIRED;
                 return (
@@ -141,9 +161,18 @@ const LiveView: React.FC<LiveViewProps> = ({ settings, isAuthorized, onManage })
           <ScorecardTable 
             players={settings.teamA.players} 
             opponentPlayers={settings.teamB.players}
-            history={state.matchHistory}
+            history={state.matchHistory.filter(b => b.innings === 1)}
             teamName={settings.teamA.name}
           />
+
+          {state.matchHistory.some(b => b.innings === 2) && (
+            <ScorecardTable 
+              players={settings.teamB.players} 
+              opponentPlayers={settings.teamA.players}
+              history={state.matchHistory.filter(b => b.innings === 2)}
+              teamName={settings.teamB.name}
+            />
+          )}
         </div>
       )}
     </div>

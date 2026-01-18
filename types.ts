@@ -61,6 +61,8 @@ export interface MatchRecord {
     overs: string;
     target?: number;
     winner?: string;
+    teamAScore?: { runs: number; wickets: number; overs: string };
+    teamBScore?: { runs: number; wickets: number; overs: string };
   };
 }
 

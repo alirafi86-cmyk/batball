@@ -16,7 +16,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
   const [overs, setOvers] = useState(16);
   const [playerCount, setPlayerCount] = useState(11);
   const [retirementLimit, setRetirementLimit] = useState(8);
-  const [matchPin, setMatchPin] = useState('1234');
+  const [matchPin, setMatchPin] = useState('');
   
   const [tossWinner, setTossWinner] = useState<'A' | 'B'>('A');
   const [tossDecision, setTossDecision] = useState<'bat' | 'bowl'>('bat');
@@ -32,6 +32,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
   
   const [showBulkPaste, setShowBulkPaste] = useState<{ active: boolean, team: 'A' | 'B' }>({ active: false, team: 'A' });
   const [bulkText, setBulkText] = useState('');
+  const [bulkSquadName, setBulkSquadName] = useState('');
   const [activeSearch, setActiveSearch] = useState<{ team: 'A' | 'B', index: number } | null>(null);
   const [showSquadManager, setShowSquadManager] = useState(false);
   const [squadTeam, setSquadTeam] = useState<'A' | 'B'>('A');
@@ -90,6 +91,19 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
       return existing || { id: Math.random().toString(36).substr(2, 9), name };
     });
 
+    // Save as squad if squad name is provided
+    if (bulkSquadName.trim()) {
+      const savedSquads = JSON.parse(localStorage.getItem('squads') || '[]');
+      const newSquad = {
+        id: `squad_${Date.now()}`,
+        name: bulkSquadName.trim(),
+        players: newPlayers.slice(0, 11),
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      localStorage.setItem('squads', JSON.stringify([...savedSquads, newSquad]));
+    }
+
     if (showBulkPaste.team === 'A') {
       const next = [...teamAPlayers];
       newPlayers.slice(0, 11).forEach((p, i) => next[i] = p);
@@ -101,9 +115,20 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
     }
     setShowBulkPaste({ active: false, team: 'A' });
     setBulkText('');
+    setBulkSquadName('');
   };
 
   const handleStart = () => {
+    // Validation: Ensure team names are not empty
+    if (!teamAName.trim()) {
+      alert('Please enter Team A name');
+      return;
+    }
+    if (!teamBName.trim()) {
+      alert('Please enter Team B name');
+      return;
+    }
+
     // Fill empty names with defaults like A1, A2 or B1, B2
     const finalTeamA = teamAPlayers.slice(0, playerCount).map((p, i) => ({
       ...p,
@@ -169,17 +194,15 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
             <input type="number" value={retirementLimit} onChange={e => setRetirementLimit(parseInt(e.target.value) || 0)} className="w-full bg-transparent font-black text-xl text-amber-900 outline-none" />
           </div>
           <div className="bg-gray-100 p-3 rounded-2xl border border-gray-200">
-            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Scorer PIN</label>
-            <div className="flex items-center gap-2">
-              <input 
-                type="password" 
-                maxLength={4}
-                value={matchPin} 
-                onChange={e => setMatchPin(e.target.value.replace(/\D/g, '').slice(0, 4))} 
-                className="flex-1 bg-transparent font-black text-xl text-gray-800 outline-none placeholder:text-gray-300" 
-              />
-              <span className="text-[10px] font-bold text-gray-500">•••• (hidden)</span>
-            </div>
+            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Scorer PIN (optional)</label>
+            <input 
+              type="text" 
+              maxLength={6}
+              value={matchPin} 
+              onChange={e => setMatchPin(e.target.value.replace(/\s/g, '').slice(0, 6))} 
+              className="w-full bg-transparent font-black text-xl text-gray-800 outline-none placeholder:text-gray-300" 
+              placeholder="Leave blank to skip"
+            />
           </div>
         </div>
 
@@ -268,16 +291,29 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart }) => {
       {showBulkPaste.active && (
         <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-md">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl">
-            <h3 className="text-2xl font-black mb-6 text-gray-900">Paste Player Names</h3>
+            <h3 className="text-2xl font-black mb-2 text-gray-900">Paste Player Names</h3>
+            <p className="text-[10px] text-gray-400 mb-4 uppercase font-bold tracking-widest">Optional: Save as squad</p>
+            
+            <input 
+              type="text"
+              placeholder="Squad name (optional)"
+              className="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-2xl outline-none font-bold text-sm text-gray-900 mb-3"
+              value={bulkSquadName}
+              onChange={e => setBulkSquadName(e.target.value)}
+            />
+            
             <textarea 
               autoFocus
-              className="w-full h-48 p-4 bg-gray-50 border-2 border-gray-200 rounded-3xl outline-none font-bold text-gray-900"
+              className="w-full h-40 p-4 bg-gray-50 border-2 border-gray-200 rounded-3xl outline-none font-bold text-gray-900"
               placeholder="Player 1&#10;Player 2&#10;..."
               value={bulkText}
               onChange={e => setBulkText(e.target.value)}
             />
             <div className="flex space-x-3 mt-6">
-              <button onClick={() => setShowBulkPaste({ active: false, team: 'A' })} className="flex-1 py-4 font-black uppercase text-xs tracking-widest text-gray-400">Cancel</button>
+              <button onClick={() => {
+                setShowBulkPaste({ active: false, team: 'A' });
+                setBulkSquadName('');
+              }} className="flex-1 py-4 font-black uppercase text-xs tracking-widest text-gray-400">Cancel</button>
               <button onClick={parseBulk} className="flex-1 py-4 bg-emerald-600 text-white font-black uppercase text-xs tracking-widest rounded-2xl">Confirm</button>
             </div>
           </div>

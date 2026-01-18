@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MatchRecord, BallType, WicketType, Player } from '../types';
 import { ScorecardTable } from './ScorecardTable';
+import ScorecardImage from './ScorecardImage';
+import jsPDF from 'jspdf';
 
 interface StatsScreenProps {
   records: MatchRecord[];
@@ -47,6 +49,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
   const [selectedMatch, setSelectedMatch] = useState<MatchRecord | null>(initialMatch || null);
   const [viewTab, setViewTab] = useState<'leaderboard' | 'standings' | 'roster' | 'data'>('leaderboard');
   const [storageUsage, setStorageUsage] = useState(0);
+  const [showScorecardShare, setShowScorecardShare] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -143,6 +146,150 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
     URL.revokeObjectURL(url);
   };
 
+  const generateMatchPDF = (rec: MatchRecord) => {
+    try {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPos = 15;
+      const lineHeight = 7;
+      const margin = 12;
+      const contentWidth = pageWidth - 2 * margin;
+
+      // Determine match number for the day
+      const matchDate = new Date(rec.date).toLocaleDateString();
+      const matchesOnDay = records.filter(r => new Date(r.date).toLocaleDateString() === matchDate);
+      const matchNum = matchesOnDay.findIndex(m => m.id === rec.id) + 1;
+
+      // Title
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${rec.settings.teamA.name} vs ${rec.settings.teamB.name}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 8;
+
+      // Date and Match Number
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`${new Date(rec.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} - Match ${matchNum}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+
+      // Innings 1
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('INNINGS 1', margin, yPos);
+      yPos += 6;
+
+      pdf.setFontSize(14);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(rec.settings.teamA.name, margin, yPos);
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 78, 53);
+      const teamAScore = rec.finalScore.teamAScore?.runs || rec.finalScore.runs;
+      const teamAWickets = rec.finalScore.teamAScore?.wickets || rec.finalScore.wickets;
+      const teamAOvers = rec.finalScore.teamAScore?.overs || rec.finalScore.overs;
+      pdf.text(`${teamAScore}/${teamAWickets}`, pageWidth - margin - 15, yPos, { align: 'right' });
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`(${teamAOvers} overs)`, pageWidth - margin - 15, yPos + 6, { align: 'right' });
+      yPos += 15;
+
+      // Innings 2
+      if (rec.finalScore.teamBScore) {
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('INNINGS 2 (CHASE)', margin, yPos);
+        yPos += 6;
+
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(rec.settings.teamB.name, margin, yPos);
+        pdf.setFontSize(20);
+        pdf.setTextColor(0, 78, 53);
+        pdf.text(`${rec.finalScore.teamBScore.runs}/${rec.finalScore.teamBScore.wickets}`, pageWidth - margin - 15, yPos, { align: 'right' });
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(9);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`(${rec.finalScore.teamBScore.overs} overs)`, pageWidth - margin - 15, yPos + 6, { align: 'right' });
+        yPos += 15;
+      }
+
+      // Result
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('RESULT', margin, yPos);
+      yPos += 6;
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`Winner: ${rec.finalScore.winner || 'TBD'}`, margin, yPos);
+      yPos += 12;
+
+      // Batting Stats - Team A
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${rec.settings.teamA.name} - BATTING`, margin, yPos);
+      yPos += 5;
+
+      const inningsOneHistory = rec.history.filter(b => b.innings === 1);
+      const battingData: any[] = [];
+      rec.settings.teamA.players.forEach(p => {
+        const playerHistory = inningsOneHistory.filter(b => b.strikerId === p.id);
+        if (playerHistory.length > 0) {
+          const runs = playerHistory.reduce((sum, b) => sum + b.runs, 0);
+          const balls = playerHistory.filter(b => b.type === BallType.NORMAL).length;
+          battingData.push([p.name, runs.toString(), balls.toString()]);
+        }
+      });
+
+      pdf.setFontSize(8);
+      pdf.setFont(undefined, 'normal');
+      battingData.slice(0, 6).forEach(row => {
+        if (yPos > pageHeight - 15) {
+          pdf.addPage();
+          yPos = 15;
+        }
+        pdf.text(`${row[0]}: ${row[1]} (${row[2]} balls)`, margin, yPos);
+        yPos += 4;
+      });
+
+      yPos += 5;
+
+      // Bowling Stats - Team B
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${rec.settings.teamB.name} - BOWLING`, margin, yPos);
+      yPos += 5;
+
+      const bowlingData: any[] = [];
+      rec.settings.teamB.players.forEach(p => {
+        const playerHistory = inningsOneHistory.filter(b => b.bowlerId === p.id);
+        if (playerHistory.length > 0) {
+          const runs = playerHistory.reduce((sum, b) => sum + b.runs + (b.type !== BallType.NORMAL ? 1 : 0), 0);
+          const wickets = playerHistory.filter(b => b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED).length;
+          const balls = playerHistory.filter(b => b.type === BallType.NORMAL).length;
+          bowlingData.push([p.name, wickets.toString(), runs.toString(), balls.toString()]);
+        }
+      });
+
+      pdf.setFontSize(8);
+      pdf.setFont(undefined, 'normal');
+      bowlingData.slice(0, 6).forEach(row => {
+        if (yPos > pageHeight - 15) {
+          pdf.addPage();
+          yPos = 15;
+        }
+        pdf.text(`${row[0]}: ${row[1]}/w, ${row[2]} runs (${row[3]} balls)`, margin, yPos);
+        yPos += 4;
+      });
+
+      const filename = `${rec.settings.teamA.name}-vs-${rec.settings.teamB.name}-${new Date(rec.date).toISOString().split('T')[0]}-match${matchNum}.pdf`;
+      pdf.save(filename);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to generate PDF');
+    }
+  };
+
   const offloadMatchToCloud = async (rec: MatchRecord) => {
     const filename = `scorecard-${rec.settings.teamA.name}-${new Date(rec.date).toISOString().split('T')[0]}.json`;
     const blob = new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' });
@@ -168,33 +315,191 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
 
   if (selectedMatch) {
     const isSharedFile = !records.some(r => r.id === selectedMatch.id);
+    const inningsOneHistory = selectedMatch.history.filter(b => b.innings === 1);
+    const inningsTwoHistory = selectedMatch.history.filter(b => b.innings === 2);
+    
+    // Calculate match number (for same day, same teams)
+    const selectedMatchDate = new Date(selectedMatch.date).toLocaleDateString();
+    const matchesOnSameDay = records.filter(r => 
+      new Date(r.date).toLocaleDateString() === selectedMatchDate &&
+      r.settings.teamA.name === selectedMatch.settings.teamA.name &&
+      r.settings.teamB.name === selectedMatch.settings.teamB.name
+    );
+    const matchNumber = matchesOnSameDay.findIndex(m => m.id === selectedMatch.id) + 1;
+    
+    // Share scorecard modal
+    if (showScorecardShare) {
+      const handleShareImage = async () => {
+        const scoreboardRef = document.querySelector('[data-scorecard-image]') as HTMLElement;
+        if (!scoreboardRef) return;
+
+        try {
+          const html2Canvas = (await import('html2canvas')).default;
+          const canvas = await html2Canvas(scoreboardRef, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            logging: false
+          });
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          if (blob && navigator.share) {
+            const file = new File([blob as BlobPart], `batball-scorecard.png`, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file], title: 'Batball Scorecard', text: 'Match scorecard ready to share.' });
+            } else {
+              alert('Image copied to clipboard - paste in WhatsApp');
+            }
+          }
+        } catch (err) {
+          console.error('Error sharing image:', err);
+          alert('Unable to share scorecard image');
+        }
+      };
+
+      const handleDownloadImage = async () => {
+        const scoreboardRef = document.querySelector('[data-scorecard-image]') as HTMLElement;
+        if (!scoreboardRef) return;
+
+        try {
+          const html2Canvas = (await import('html2canvas')).default;
+          const canvas = await html2Canvas(scoreboardRef, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            logging: false
+          });
+          const image = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = image;
+          link.download = `scorecard-${new Date().toISOString().split('T')[0]}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (err) {
+          console.error('Error downloading image:', err);
+          alert('Failed to download scorecard image');
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/70 z-[300] flex flex-col overflow-y-auto p-4">
+          <div className="flex justify-between items-center mb-4 sticky top-0 bg-black/70 py-2">
+            <h2 className="text-white font-black text-lg">Share Scorecard</h2>
+            <button
+              onClick={() => setShowScorecardShare(false)}
+              className="text-white text-3xl hover:opacity-70 transition"
+            >
+              ×
+            </button>
+          </div>
+          <div className="flex-1 flex items-center justify-center mb-4">
+            <ScorecardImage
+              record={{
+                id: 'temp',
+                date: Date.now(),
+                settings: selectedMatch.settings,
+                history: selectedMatch.history,
+                finalScore: selectedMatch.finalScore
+              }}
+              type="full"
+              matchNumber={matchNumber}
+              onShare={() => handleShareImage()}
+              onDownload={() => handleDownloadImage()}
+            />
+          </div>
+          <div className="flex gap-3 sticky bottom-0 bg-black/70 py-2">
+            <button
+              onClick={handleShareImage}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-blue-700 transition"
+            >
+              <i className="fas fa-share-nodes"></i>
+              <span>Share Image</span>
+            </button>
+            <button
+              onClick={handleDownloadImage}
+              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-emerald-700 transition"
+            >
+              <i className="fas fa-download"></i>
+              <span>Download Image</span>
+            </button>
+            <button
+              onClick={() => setShowScorecardShare(false)}
+              className="flex-1 px-4 py-3 bg-gray-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2"
+            >
+              <i className="fas fa-times"></i>
+              <span>Close</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="space-y-6 animate-fadeIn pb-12">
         <button onClick={() => setSelectedMatch(null)} className="flex items-center text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">
           <i className="fas fa-arrow-left mr-2"></i> Close Scorecard
         </button>
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 text-center relative overflow-hidden">
+
+        {/* Team A Score Card */}
+        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-emerald-100 text-center relative overflow-hidden">
           {isSharedFile && <div className="absolute top-0 left-0 bg-blue-500 text-white text-[7px] font-black px-4 py-1 uppercase tracking-widest rotate-[-45deg] -ml-8 mt-2 w-32">Viewing Shared</div>}
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{new Date(selectedMatch.date).toLocaleDateString()}</p>
-          <h2 className="text-3xl font-black text-gray-800">{selectedMatch.settings.teamA.name}</h2>
-          <p className="text-4xl font-black text-emerald-700">{selectedMatch.finalScore.runs}/{selectedMatch.finalScore.wickets}</p>
-          <div className="flex justify-center space-x-2 mt-4">
-             <button onClick={() => offloadMatchToCloud(selectedMatch)} className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-emerald-100 flex items-center">
-               <i className="fas fa-share-nodes mr-2"></i> Post to Group
-             </button>
-             {!isSharedFile && (
-               <button onClick={() => deleteMatchLocally(selectedMatch.id)} className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-red-100 flex items-center">
-                 <i className="fas fa-trash-can mr-2"></i> Purge Local
-               </button>
-             )}
-          </div>
+          <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Innings 1</h2>
+          <h3 className="text-3xl font-black text-gray-800 mb-1">{selectedMatch.settings.teamA.name}</h3>
+          <p className="text-4xl font-black text-emerald-700 mb-2">
+            {selectedMatch.finalScore.teamAScore?.runs || selectedMatch.finalScore.runs}/{selectedMatch.finalScore.teamAScore?.wickets || selectedMatch.finalScore.wickets}
+            <span className="text-lg text-gray-400 font-normal ml-2">({selectedMatch.finalScore.teamAScore?.overs || selectedMatch.finalScore.overs})</span>
+          </p>
         </div>
+
+        {/* Team B Score Card */}
+        {selectedMatch.finalScore.teamBScore && (
+          <div className="bg-blue-50 p-8 rounded-[2.5rem] shadow-sm border border-blue-100 text-center relative overflow-hidden">
+            <h2 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Innings 2 (Chase)</h2>
+            <h3 className="text-3xl font-black text-gray-800 mb-1">{selectedMatch.settings.teamB.name}</h3>
+            <p className="text-4xl font-black text-blue-700 mb-2">
+              {selectedMatch.finalScore.teamBScore.runs}/{selectedMatch.finalScore.teamBScore.wickets}
+              <span className="text-lg text-gray-400 font-normal ml-2">({selectedMatch.finalScore.teamBScore.overs})</span>
+            </p>
+            <p className="text-sm font-bold text-blue-600 mt-2">Target: {(selectedMatch.finalScore.teamAScore?.runs || selectedMatch.finalScore.runs) + 1}</p>
+          </div>
+        )}
+
+        {/* Result */}
+        {selectedMatch.finalScore.winner && (
+          <div className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100 text-center">
+            <p className="text-sm font-black text-amber-900 uppercase tracking-widest mb-1">🏆 Match Winner</p>
+            <p className="text-2xl font-black text-amber-700">{selectedMatch.finalScore.winner}</p>
+          </div>
+        )}
+
+        <div className="flex justify-center space-x-2 flex-wrap gap-2">
+           <button onClick={() => setShowScorecardShare(true)} className="bg-[#a1cf65] text-[#004e35] px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-[#99c955] flex items-center hover:bg-[#99c955] transition">
+             <i className="fas fa-image mr-2"></i> Share Scorecard
+           </button>
+           <button onClick={() => offloadMatchToCloud(selectedMatch)} className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-emerald-100 flex items-center">
+             <i className="fas fa-share-nodes mr-2"></i> Post to Group
+           </button>
+           {!isSharedFile && (
+             <button onClick={() => deleteMatchLocally(selectedMatch.id)} className="bg-gray-50 text-gray-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-gray-100 flex items-center">
+               <i className="fas fa-trash-can mr-2"></i> Purge Local
+             </button>
+           )}
+        </div>
+
         <ScorecardTable 
           players={selectedMatch.settings.teamA.players} 
           opponentPlayers={selectedMatch.settings.teamB.players}
-          history={selectedMatch.history} 
+          history={inningsOneHistory} 
           teamName={selectedMatch.settings.teamA.name}
         />
+
+        {inningsTwoHistory.length > 0 && (
+          <ScorecardTable 
+            players={selectedMatch.settings.teamB.players} 
+            opponentPlayers={selectedMatch.settings.teamA.players}
+            history={inningsTwoHistory} 
+            teamName={selectedMatch.settings.teamB.name}
+          />
+        )}
       </div>
     );
   }
@@ -240,8 +545,21 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
                     <p className="text-xs text-gray-500">vs {rec.settings.teamB.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-black text-emerald-700">{rec.finalScore.runs}/{rec.finalScore.wickets}</p>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">{rec.finalScore.overs} Ov</p>
+                    <div className="mb-2">
+                      <p className="text-lg font-black text-emerald-700">
+                        {rec.finalScore.teamAScore?.runs || rec.finalScore.runs}/{rec.finalScore.teamAScore?.wickets || rec.finalScore.wickets}
+                      </p>
+                      {rec.finalScore.teamBScore && (
+                        <p className="text-lg font-black text-blue-700">
+                          {rec.finalScore.teamBScore.runs}/{rec.finalScore.teamBScore.wickets}
+                        </p>
+                      )}
+                    </div>
+                    {rec.finalScore.winner && (
+                      <p className="text-[10px] font-black text-amber-600 uppercase bg-amber-50 px-2 py-1 rounded inline-block">
+                        🏆 {rec.finalScore.winner}
+                      </p>
+                    )}
                   </div>
                </div>
                <div className="flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-50">

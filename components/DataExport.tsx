@@ -6,35 +6,6 @@ interface DataExportProps {
 }
 
 const DataExport: React.FC<DataExportProps> = ({ records }) => {
-  const handleExportJSON = () => {
-    // Remove scorer PIN from exported data for security
-    const sanitizedRecords = records.map(record => ({
-      ...record,
-      settings: {
-        ...record.settings,
-        scorerPin: undefined
-      }
-    }));
-
-    const dataToExport = {
-      exportDate: new Date().toISOString(),
-      version: '1.0.0',
-      totalMatches: sanitizedRecords.length,
-      matches: sanitizedRecords
-    };
-
-    const jsonString = JSON.stringify(dataToExport, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `batball-export-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleExportCSV = () => {
     let csv = 'Match Date,Team A,Team B,Team A Score,Team A Wickets,Winner\n';
     
@@ -76,20 +47,13 @@ const DataExport: React.FC<DataExportProps> = ({ records }) => {
       
       <div className="space-y-3">
         <button
-          onClick={handleExportJSON}
-          className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200"
-        >
-          <i className="fas fa-file-json"></i>
-          <span>Export as JSON</span>
-        </button>
-
-        <button
           onClick={handleExportCSV}
           className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200"
         >
           <i className="fas fa-file-csv"></i>
-          <span>Export as CSV</span>
+          <span>Export All Matches (CSV)</span>
         </button>
+
 
         <button
           onClick={handleClearAllData}
