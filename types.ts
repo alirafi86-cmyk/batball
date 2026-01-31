@@ -36,6 +36,7 @@ export interface BallEvent {
   bowlerId: string;
   innings: 1 | 2;
   timestamp: number;
+  over?: number; // Over number (0-indexed) when the ball was bowled
 }
 
 export interface MatchSettings {

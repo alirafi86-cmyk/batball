@@ -118,13 +118,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 border-t border-gray-100 h-12">
-                     <button onClick={() => onResumeScoring(m.settings)} className={`font-black text-[10px] uppercase tracking-widest transition flex items-center justify-center border-r border-gray-100 ${hasAccess ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400'}`}>
-                       {!hasAccess && <i className="fas fa-lock mr-2 text-gray-300 text-[8px]"></i>}
-                       <i className="fas fa-pencil mr-2"></i> Score
+                  <div className="grid grid-cols-3 border-t border-gray-100">
+                     <button onClick={() => onResumeScoring(m.settings)} className={`font-black text-[9px] uppercase tracking-widest transition flex flex-col items-center justify-center py-2 px-1 border-r border-gray-100 ${hasAccess ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400'}`}>
+                       <i className="fas fa-pencil text-xs mb-0.5"></i> Score
                      </button>
-                     <button onClick={() => onViewLive(m.settings)} className="bg-white text-gray-600 font-black text-[10px] uppercase tracking-widest transition flex items-center justify-center">
-                       <i className="fas fa-eye mr-2"></i> Live Feed
+                     <button onClick={() => onViewLive(m.settings)} className="bg-white text-gray-600 font-black text-[9px] uppercase tracking-widest transition flex flex-col items-center justify-center py-2 px-1 border-r border-gray-100">
+                       <i className="fas fa-eye text-xs mb-0.5"></i> Live
+                     </button>
+                     <button onClick={() => {
+                       if (!window.confirm(`Delete match ${m.settings.teamA.name} vs ${m.settings.teamB.name}?\n\nThis will permanently remove this live match. This action cannot be undone.`)) return;
+                       const registry = JSON.parse(localStorage.getItem('match_registry') || '[]');
+                       localStorage.setItem('match_registry', JSON.stringify(registry.filter((x: any) => x.matchId !== m.matchId)));
+                       window.location.reload();
+                     }} className="bg-red-50 text-red-600 font-black text-[9px] uppercase tracking-widest transition flex flex-col items-center justify-center py-2 px-1 hover:bg-red-100">
+                       <i className="fas fa-trash-can text-xs mb-0.5"></i> Delete
                      </button>
                   </div>
                 </div>
@@ -147,19 +154,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
         </div>
         <div className="space-y-3">
           {recentRecords.slice(0, 3).map(rec => (
-            <div key={rec.id} onClick={() => onViewRecord && onViewRecord(rec)} className="bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center hover:bg-emerald-50 transition cursor-pointer group">
-              <div className="flex items-center space-x-4">
-                <div className="text-center w-12 border-r border-gray-100 pr-4">
-                  <p className="text-[10px] font-black text-gray-400 uppercase">{new Date(rec.date).toLocaleDateString('en-US', { month: 'short' })}</p>
-                  <p className="text-lg font-black text-gray-800 leading-none">{new Date(rec.date).getDate()}</p>
+            <div key={rec.id} className="bg-white p-5 rounded-2xl border border-gray-100 hover:bg-emerald-50 transition group">
+              <div className="flex justify-between items-start mb-3">
+                <div onClick={() => onViewRecord && onViewRecord(rec)} className="flex items-center space-x-4 cursor-pointer flex-1">
+                  <div className="text-center w-12 border-r border-gray-100 pr-4">
+                    <p className="text-[10px] font-black text-gray-400 uppercase">{new Date(rec.date).toLocaleDateString('en-US', { month: 'short' })}</p>
+                    <p className="text-lg font-black text-gray-800 leading-none">{new Date(rec.date).getDate()}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">{rec.settings.teamA.name}</h4>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">vs {rec.settings.teamB.name}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-800">{rec.settings.teamA.name}</h4>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">vs {rec.settings.teamB.name}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="mb-2">
+                <div className="text-right">
                   <p className="text-sm font-black text-[#004e35]">
                     {rec.finalScore.teamAScore?.runs || rec.finalScore.runs}/{rec.finalScore.teamAScore?.wickets || rec.finalScore.wickets}
                   </p>
@@ -169,11 +176,42 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
                     </p>
                   )}
                 </div>
-                {rec.finalScore.winner && (
-                  <p className="text-[10px] font-black text-amber-600 uppercase bg-amber-50 px-2 py-1 rounded">
-                    🏆 {rec.finalScore.winner}
-                  </p>
-                )}
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <div>
+                  {rec.finalScore.winner && (
+                    <p className="text-[10px] font-black text-amber-600 uppercase bg-amber-50 px-2 py-1 rounded inline-block">
+                      🏆 {rec.finalScore.winner}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    className="text-[10px] font-black uppercase bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 transition active:scale-95"
+                    title="Edit this scorecard"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onViewRecord && onViewRecord(rec);
+                    }}
+                  >
+                    <i className="fas fa-edit mr-1"></i> Edit
+                  </button>
+                  <button
+                    className="text-[10px] font-black uppercase bg-red-500 text-white px-3 py-1.5 rounded hover:bg-red-600 transition active:scale-95"
+                    title="Delete this scorecard"
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (!window.confirm(`Delete scorecard ${rec.settings.teamA.name} vs ${rec.settings.teamB.name}?\n\nThis will permanently remove this match from your history. This action cannot be undone.`)) return;
+                      const updated = recentRecords.filter(r => r.id !== rec.id);
+                      localStorage.setItem('cricket_history', JSON.stringify(updated));
+                      const registry = JSON.parse(localStorage.getItem('match_registry') || '[]');
+                      localStorage.setItem('match_registry', JSON.stringify(registry.filter((m: any) => m.matchId !== rec.settings.matchId)));
+                      window.location.reload();
+                    }}
+                  >
+                    <i className="fas fa-trash-can mr-1"></i> Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}

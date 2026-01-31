@@ -50,12 +50,22 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
   const [viewTab, setViewTab] = useState<'leaderboard' | 'standings' | 'roster' | 'data'>('leaderboard');
   const [storageUsage, setStorageUsage] = useState(0);
   const [showScorecardShare, setShowScorecardShare] = useState(false);
+  const [showEditTeamNames, setShowEditTeamNames] = useState(false);
+  const [editedTeamAName, setEditedTeamAName] = useState('');
+  const [editedTeamBName, setEditedTeamBName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const usage = JSON.stringify(localStorage).length;
     setStorageUsage(Math.round((usage / (5 * 1024 * 1024)) * 100));
   }, [records]);
+
+  useEffect(() => {
+    if (selectedMatch) {
+      setEditedTeamAName(selectedMatch.settings.teamA.name);
+      setEditedTeamBName(selectedMatch.settings.teamB.name);
+    }
+  }, [selectedMatch]);
 
   const clubRoster = useMemo<Player[]>(() => {
     const saved = localStorage.getItem('club_roster');
@@ -134,6 +144,22 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
     });
     return stats;
   }, [records, clubRoster]);
+
+  const handleSaveTeamNames = () => {
+    if (!selectedMatch) return;
+    const updated = {
+      ...selectedMatch,
+      settings: {
+        ...selectedMatch.settings,
+        teamA: { ...selectedMatch.settings.teamA, name: editedTeamAName },
+        teamB: { ...selectedMatch.settings.teamB, name: editedTeamBName }
+      }
+    };
+    const updatedRecords = records.map(r => r.id === selectedMatch.id ? updated : r);
+    localStorage.setItem('cricket_history', JSON.stringify(updatedRecords));
+    setSelectedMatch(updated);
+    setShowEditTeamNames(false);
+  };
 
   const handleExportAll = () => {
     const data = { records, roster: clubRoster, exportedAt: new Date().toISOString() };
@@ -475,6 +501,9 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
            <button onClick={() => setShowScorecardShare(true)} className="bg-[#a1cf65] text-[#004e35] px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-[#99c955] flex items-center hover:bg-[#99c955] transition">
              <i className="fas fa-image mr-2"></i> Share Scorecard
            </button>
+           <button onClick={() => setShowEditTeamNames(true)} className="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-blue-100 flex items-center hover:bg-blue-100 transition">
+             <i className="fas fa-edit mr-2"></i> Edit Team Names
+           </button>
            <button onClick={() => offloadMatchToCloud(selectedMatch)} className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-emerald-100 flex items-center">
              <i className="fas fa-share-nodes mr-2"></i> Post to Group
            </button>
@@ -499,6 +528,48 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
             history={inningsTwoHistory} 
             teamName={selectedMatch.settings.teamB.name}
           />
+        )}
+
+        {showEditTeamNames && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[2rem] max-w-sm w-full p-6 shadow-xl animate-scaleIn">
+              <h3 className="text-2xl font-black text-gray-800 mb-6 uppercase italic tracking-tighter">Edit Team Names</h3>
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2 uppercase">Team A</label>
+                  <input
+                    type="text"
+                    value={editedTeamAName}
+                    onChange={(e) => setEditedTeamAName(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg font-bold text-gray-800 focus:border-emerald-600 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2 uppercase">Team B</label>
+                  <input
+                    type="text"
+                    value={editedTeamBName}
+                    onChange={(e) => setEditedTeamBName(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-blue-200 rounded-lg font-bold text-gray-800 focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEditTeamNames(false)}
+                  className="flex-1 bg-gray-100 text-gray-700 font-black py-3 rounded-lg uppercase text-[10px] tracking-widest hover:bg-gray-200 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveTeamNames}
+                  className="flex-1 bg-emerald-600 text-white font-black py-3 rounded-lg uppercase text-[10px] tracking-widest hover:bg-emerald-700 transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );

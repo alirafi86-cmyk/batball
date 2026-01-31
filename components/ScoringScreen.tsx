@@ -69,7 +69,7 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
 
   const [showWicketModal, setShowWicketModal] = useState(false);
   const [showBowlerSelect, setShowBowlerSelect] = useState(false);
-  const [showBatterSelect, setShowBatterSelect] = useState<{ active: boolean, target: 'striker' | 'nonStriker', forceSelection?: boolean }>({ active: false, target: 'striker' });
+  const [showBatterSelect, setShowBatterSelect] = useState<{ active: boolean, target: 'striker' | 'nonStriker' | 'runout' | 'runoutNew' | 'runoutEnd', forceSelection?: boolean, runoutOutId?: string, runoutNewId?: string }>({ active: false, target: 'striker' });
 
   // Prompt for openers and opening bowler if not chosen yet (new match or new innings)
   useEffect(() => {
@@ -107,27 +107,15 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
   const nonStrikerStats = useMemo(() => getPlayerStats(state.nonStrikerId), [state.matchHistory, state.nonStrikerId, state.currentInnings]);
 
   const currentOverBalls = useMemo(() => {
-    if (state.ballsInOver === 0) return []; // No balls in current over yet
-
-    const overBalls: BallEvent[] = [];
-    let legalCount = 0;
-
-    // Go backwards through history and collect balls until we have ballsInOver legal balls
-    for (let i = state.matchHistory.length - 1; i >= 0; i--) {
-      const ball = state.matchHistory[i];
-      if (ball.innings !== state.currentInnings) continue;
-      if (ball.wicket === WicketType.RETIRED) continue; // Skip retire markers
-
-      overBalls.unshift(ball);
-
-      if (ball.type === BallType.NORMAL) {
-        legalCount += 1;
-        if (legalCount === state.ballsInOver) break; // Stop after collecting current over's balls
-      }
-    }
-
-    return overBalls;
-  }, [state.matchHistory, state.currentInnings, state.ballsInOver]);
+    const currentOver = Math.floor(state.totalBalls / 6);
+    
+    // Get all balls from current innings that belong to the current over
+    return state.matchHistory.filter(ball => 
+      ball.innings === state.currentInnings && 
+      ball.over === currentOver &&
+      ball.wicket !== WicketType.RETIRED
+    );
+  }, [state.matchHistory, state.currentInnings, state.totalBalls]);
 
   const target = state.firstInningsScore !== undefined ? state.firstInningsScore + 1 : null;
   const isChaseDone = target !== null && state.score >= target;
@@ -150,6 +138,7 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
 
     setState(prev => {
       const actualStrikerId = retiringPlayerId || prev.strikerId;
+      const currentOver = Math.floor(prev.totalBalls / 6);
       
       const ball: BallEvent = {
         id: Math.random().toString(36).substr(2, 9),
@@ -159,7 +148,8 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
         strikerId: actualStrikerId, 
         bowlerId: prev.bowlerId,
         innings: prev.currentInnings,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        over: currentOver
       };
 
       let nextScore = prev.score + runs;
@@ -195,6 +185,11 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
           nextRetiredIds.push(actualStrikerId);
           if (actualStrikerId === prev.strikerId) nextStrikerId = '';
           else if (actualStrikerId === prev.nonStrikerId) nextNonStrikerId = '';
+        } else if (wicket === WicketType.RUN_OUT) {
+          // Multi-step runout flow
+          setTimeout(() => {
+            setShowBatterSelect({ active: true, target: 'runout', forceSelection: true });
+          }, 0);
         } else {
           nextStrikerId = '';
         }
@@ -343,7 +338,7 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
         <div className="flex justify-between items-start mb-6 relative z-10">
           <div>
             <p className="text-emerald-200 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-              {currentBattingTeam.name} {state.currentInnings === 2 ? '(Chasing)' : ''}
+              {currentBattingTeam.name} {state.currentInnings === 2 ? `(Target: ${target}, Chasing)` : ''}
             </p>
             <h2 className="text-6xl font-black flex items-baseline">{state.score}<span className="text-[#a1cf65] font-light mx-2 text-4xl">/</span>{state.wickets}</h2>
           </div>
@@ -403,9 +398,26 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
             {currentOverBalls.map(ball => {
               const isWicket = ball.wicket !== WicketType.NONE && ball.wicket !== WicketType.RETIRED;
               const isRetired = ball.wicket === WicketType.RETIRED;
+              let display = '';
+              let badgeClass = '';
+              if (ball.type === BallType.NO_BALL) {
+                badgeClass = 'bg-purple-600 text-white';
+                display = ball.runs === 0 ? 'NB' : `NB+${ball.runs}`;
+              } else if (ball.type === BallType.WIDE) {
+                badgeClass = 'bg-blue-600 text-white';
+                display = ball.runs === 0 ? 'WD' : `WD+${ball.runs}`;
+              } else {
+                display = String(ball.runs);
+              }
               return (
-                <div key={ball.id} className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 border border-white/10 ${isWicket ? 'bg-red-600' : isRetired ? 'bg-amber-500' : 'bg-white/10'}`}>
-                  {isWicket ? 'W' : isRetired ? 'R' : ball.runs}
+                <div
+                  key={ball.id}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 border border-white/10 ${
+                    isWicket ? 'bg-red-600' : isRetired ? 'bg-amber-500' : badgeClass || 'bg-white/10'
+                  }`}
+                  title={ball.type === BallType.NO_BALL ? 'No Ball' : ball.type === BallType.WIDE ? 'Wide' : ''}
+                >
+                  {isWicket ? 'W' : isRetired ? 'R' : display}
                 </div>
               );
             })}
@@ -496,18 +508,102 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
         <div className="fixed inset-0 z-[500] flex items-center justify-center bg-[#001a11]/90 backdrop-blur-xl p-6">
           <div className="bg-white rounded-[3rem] w-full max-w-sm p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[80vh]">
             <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
-            <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter mb-6">
-              Select {showBatterSelect.target === 'striker' ? 'Striker' : 'Non-Striker'}
-            </h3>
-            <div className="overflow-y-auto space-y-2 flex-1 pr-2 custom-scrollbar">
-              {currentBattingTeam.players.map(p => {
-                const isAtCrease = p.id === state.strikerId || p.id === state.nonStrikerId;
-                const isRetired = state.retiredPlayerIds.includes(p.id);
-                const isOut = state.matchHistory.some(b => b.innings === state.currentInnings && b.strikerId === p.id && b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED);
-                
-                  if (isAtCrease || isOut) return null;
+            
+            {/* Step 1: Who was run out? */}
+            {showBatterSelect.target === 'runout' && (
+              <>
+                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter mb-6">Who was run out?</h3>
+                <div className="overflow-y-auto space-y-2 flex-1 pr-2 custom-scrollbar">
+                  {[state.strikerId, state.nonStrikerId].map(pid => {
+                    const p = currentBattingTeam.players.find(x => x.id === pid);
+                    if (!p) return null;
+                    const stats = getPlayerStats(p.id);
+                    return (
+                      <button key={p.id} onClick={() => setShowBatterSelect({ active: true, target: 'runoutNew', forceSelection: true, runoutOutId: p.id })} className="w-full p-5 rounded-2xl text-left font-black border-2 transition active:scale-95 flex justify-between items-center border-red-400 bg-red-50 text-red-800">
+                        <div>
+                          <p>{p.name}</p>
+                          {stats.balls > 0 && <p className="text-[10px] opacity-60 font-bold">{stats.runs} runs off {stats.balls} balls</p>}
+                        </div>
+                        <span className="text-[8px] font-black uppercase tracking-widest bg-red-200 text-red-800 px-2 py-1 rounded">OUT</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            
+            {/* Step 2: Select new batsman */}
+            {showBatterSelect.target === 'runoutNew' && (
+              <>
+                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter mb-6">Select New Batsman</h3>
+                <div className="overflow-y-auto space-y-2 flex-1 pr-2 custom-scrollbar">
+                  {currentBattingTeam.players.filter(p => 
+                    p.id !== state.strikerId && 
+                    p.id !== state.nonStrikerId && 
+                    !state.retiredPlayerIds.includes(p.id) && 
+                    !state.matchHistory.some(b => b.innings === state.currentInnings && b.strikerId === p.id && b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED)
+                  ).map(p => {
+                    const stats = getPlayerStats(p.id);
+                    return (
+                      <button key={p.id} onClick={() => setShowBatterSelect({ active: true, target: 'runoutEnd', forceSelection: true, runoutOutId: showBatterSelect.runoutOutId, runoutNewId: p.id })} className="w-full p-5 rounded-2xl text-left font-black border-2 transition active:scale-95 flex justify-between items-center border-emerald-400 bg-emerald-50 text-emerald-800">
+                        <div>
+                          <p>{p.name}</p>
+                          {stats.balls > 0 && <p className="text-[10px] opacity-60 font-bold">{stats.runs} runs off {stats.balls} balls</p>}
+                        </div>
+                        <span className="text-[8px] font-black uppercase tracking-widest bg-emerald-200 text-emerald-800 px-2 py-1 rounded">IN</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            
+            {/* Step 3: Assign end */}
+            {showBatterSelect.target === 'runoutEnd' && (
+              <>
+                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter mb-6">Which End?</h3>
+                <div className="space-y-3 flex-1">
+                  <button onClick={() => {
+                    setState(s => {
+                      let newStriker = s.strikerId;
+                      let newNonStriker = s.nonStrikerId;
+                      // Remove out batter, add new batter to striker
+                      if (showBatterSelect.runoutOutId === s.strikerId) newStriker = showBatterSelect.runoutNewId!;
+                      if (showBatterSelect.runoutOutId === s.nonStrikerId) newStriker = showBatterSelect.runoutNewId!;
+                      return { ...s, strikerId: newStriker, nonStrikerId: newNonStriker };
+                    });
+                    setShowBatterSelect({ active: false, target: 'striker' });
+                  }} className="w-full py-5 bg-emerald-600 text-white font-black text-lg rounded-2xl transition active:scale-95">Striker End</button>
+                  <button onClick={() => {
+                    setState(s => {
+                      let newStriker = s.strikerId;
+                      let newNonStriker = s.nonStrikerId;
+                      // Remove out batter, add new batter to non-striker
+                      if (showBatterSelect.runoutOutId === s.strikerId) newNonStriker = showBatterSelect.runoutNewId!;
+                      if (showBatterSelect.runoutOutId === s.nonStrikerId) newStriker = showBatterSelect.runoutNewId!;
+                      return { ...s, strikerId: newStriker, nonStrikerId: newNonStriker };
+                    });
+                    setShowBatterSelect({ active: false, target: 'striker' });
+                  }} className="w-full py-5 bg-blue-600 text-white font-black text-lg rounded-2xl transition active:scale-95">Non-Striker End</button>
+                </div>
+              </>
+            )}
+            
+            {/* Default: opener/non-striker selection */}
+            {(showBatterSelect.target === 'striker' || showBatterSelect.target === 'nonStriker') && (
+              <>
+                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter mb-6">
+                  Select {showBatterSelect.target === 'striker' ? 'Striker' : 'Non-Striker'}
+                </h3>
+                <div className="overflow-y-auto space-y-2 flex-1 pr-2 custom-scrollbar">
+                  {currentBattingTeam.players.map(p => {
+                    const isAtCrease = p.id === state.strikerId || p.id === state.nonStrikerId;
+                    const isRetired = state.retiredPlayerIds.includes(p.id);
+                    const isOut = state.matchHistory.some(b => b.innings === state.currentInnings && b.strikerId === p.id && b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED);
+                    
+                    if (isAtCrease || isOut) return null;
 
-                const stats = getPlayerStats(p.id);
+                    const stats = getPlayerStats(p.id);
 
                 return (
                   <button 
@@ -533,12 +629,19 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
                 );
               })}
             </div>
+              </>
+            )}
             <button 
               onClick={() => !showBatterSelect.forceSelection && setShowBatterSelect({ active: false, target: 'striker' })} 
               disabled={!!showBatterSelect.forceSelection}
               className="w-full mt-4 py-4 bg-gray-100 text-gray-500 font-black uppercase text-xs rounded-2xl tracking-widest hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {showBatterSelect.forceSelection ? 'Pick openers to continue' : 'Skip / Not Now'}
+              {showBatterSelect.forceSelection ? (
+                showBatterSelect.target === 'runout' ? 'Select batter to continue'
+                : showBatterSelect.target === 'runoutNew' ? 'Select new batsman to continue'
+                : showBatterSelect.target === 'runoutEnd' ? 'Assign end to continue'
+                : 'Pick openers to continue'
+              ) : 'Skip / Not Now'}
             </button>
           </div>
         </div>

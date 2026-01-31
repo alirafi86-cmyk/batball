@@ -10,6 +10,8 @@ interface EditMatchSettingsModalProps {
 const EditMatchSettingsModal: React.FC<EditMatchSettingsModalProps> = ({ settings, onSave, onCancel }) => {
   const [totalOvers, setTotalOvers] = useState(settings.totalOvers);
   const [playersPerTeam, setPlayersPerTeam] = useState(settings.playersPerTeam);
+  const [teamAName, setTeamAName] = useState(settings.teamA.name);
+  const [teamBName, setTeamBName] = useState(settings.teamB.name);
   const [error, setError] = useState('');
 
   const handleSave = () => {
@@ -43,7 +45,9 @@ const EditMatchSettingsModal: React.FC<EditMatchSettingsModalProps> = ({ setting
     const updatedSettings: MatchSettings = {
       ...settings,
       totalOvers,
-      playersPerTeam
+      playersPerTeam,
+      teamA: { ...settings.teamA, name: teamAName },
+      teamB: { ...settings.teamB, name: teamBName }
     };
 
     onSave(updatedSettings);
@@ -55,6 +59,32 @@ const EditMatchSettingsModal: React.FC<EditMatchSettingsModalProps> = ({ setting
         <h2 className="text-2xl font-bold text-[#004e35] mb-6">Edit Match Settings</h2>
 
         <div className="space-y-6">
+          {/* Team Names */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Team A Name
+            </label>
+            <input
+              type="text"
+              value={teamAName}
+              onChange={(e) => setTeamAName(e.target.value)}
+              className="w-full px-3 py-2 border-2 border-[#004e35] rounded-lg font-bold text-gray-800"
+              placeholder="Team A"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Team B Name
+            </label>
+            <input
+              type="text"
+              value={teamBName}
+              onChange={(e) => setTeamBName(e.target.value)}
+              className="w-full px-3 py-2 border-2 border-[#004e35] rounded-lg font-bold text-gray-800"
+              placeholder="Team B"
+            />
+          </div>
+
           {/* Total Overs */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -117,13 +147,19 @@ const EditMatchSettingsModal: React.FC<EditMatchSettingsModalProps> = ({ setting
           <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-[#a1cf65]">
             <p className="text-sm font-semibold text-gray-700 mb-2">Changes Summary:</p>
             <ul className="text-xs text-gray-600 space-y-1">
+              {teamAName !== settings.teamA.name && (
+                <li>• Team A: {settings.teamA.name} → {teamAName}</li>
+              )}
+              {teamBName !== settings.teamB.name && (
+                <li>• Team B: {settings.teamB.name} → {teamBName}</li>
+              )}
               {totalOvers !== settings.totalOvers && (
                 <li>• Overs: {settings.totalOvers} → {totalOvers}</li>
               )}
               {playersPerTeam !== settings.playersPerTeam && (
                 <li>• Players: {settings.playersPerTeam} → {playersPerTeam}</li>
               )}
-              {totalOvers === settings.totalOvers && playersPerTeam === settings.playersPerTeam && (
+              {totalOvers === settings.totalOvers && playersPerTeam === settings.playersPerTeam && teamAName === settings.teamA.name && teamBName === settings.teamB.name && (
                 <li>No changes</li>
               )}
             </ul>
