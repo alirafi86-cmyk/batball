@@ -477,7 +477,7 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setShowWicketModal(true)} className="h-24 rounded-[2rem] bg-red-600 text-white shadow-lg flex flex-col items-center justify-center border-b-4 border-red-800 transition active:scale-95"><i className="fas fa-skull-crossbones text-xl mb-1"></i><span className="text-xs font-black uppercase">Wicket</span></button>
+            <button onClick={() => setShowWicketModal(true)} disabled={!state.strikerId} className="h-24 rounded-[2rem] bg-red-600 text-white shadow-lg flex flex-col items-center justify-center border-b-4 border-red-800 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"><i className="fas fa-skull-crossbones text-xl mb-1"></i><span className="text-xs font-black uppercase">Wicket</span></button>
             <button onClick={undoLast} className="h-24 rounded-[2rem] bg-gray-800 text-white shadow-lg flex flex-col items-center justify-center border-b-4 border-black transition active:scale-95"><i className="fas fa-undo text-xl mb-1"></i><span className="text-xs font-black uppercase">Undo Ball</span></button>
           </div>
         </>
@@ -653,11 +653,19 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
               </>
             )}
             <button 
-              onClick={() => !showBatterSelect.forceSelection && setShowBatterSelect({ active: false, target: 'striker' })} 
-              disabled={!!showBatterSelect.forceSelection}
+              onClick={() => {
+                // Allow canceling runout step 1 if no batsmen available, otherwise enforce forceSelection
+                if (showBatterSelect.target === 'runout' && state.strikerId === '' && state.nonStrikerId === '') {
+                  setShowBatterSelect({ active: false, target: 'striker' });
+                } else if (!showBatterSelect.forceSelection) {
+                  setShowBatterSelect({ active: false, target: 'striker' });
+                }
+              }} 
+              disabled={showBatterSelect.forceSelection && !(showBatterSelect.target === 'runout' && state.strikerId === '' && state.nonStrikerId === '')}
               className="w-full mt-4 py-4 bg-gray-100 text-gray-500 font-black uppercase text-xs rounded-2xl tracking-widest hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {showBatterSelect.forceSelection ? (
+              {showBatterSelect.target === 'runout' && state.strikerId === '' && state.nonStrikerId === '' ? 'Cancel (No batsmen at crease)'
+              : showBatterSelect.forceSelection ? (
                 showBatterSelect.target === 'runout' ? 'Select batter to continue'
                 : showBatterSelect.target === 'runoutNew' ? 'Select new batsman to continue'
                 : showBatterSelect.target === 'runoutEnd' ? 'Assign end to continue'
