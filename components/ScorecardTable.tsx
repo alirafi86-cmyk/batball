@@ -112,7 +112,8 @@ export const ScorecardTable: React.FC<ScorecardTableProps> = ({ players, history
             <tbody>
               {players.map(p => {
                 const s = stats.batting[p.id];
-                if (s.balls === 0 && s.dismissalText === 'not out') return null;
+                // Show player if they faced any balls OR if they got out (including golden ducks and runouts)
+                if (s.balls === 0 && !s.isOut && s.dismissalText === 'not out') return null;
                 return (
                   <tr key={p.id} className="border-b border-gray-50 last:border-0 hover:bg-emerald-50/30 transition">
                     <td className="px-6 py-4">
@@ -171,7 +172,8 @@ export const ScorecardTable: React.FC<ScorecardTableProps> = ({ players, history
           <tbody>
             {opponentPlayers.map(p => {
               const s = stats.bowling[p.id];
-              if (s.overs === 0 && s.balls === 0) return null;
+              // Show bowler if they bowled any balls OR took any wickets OR gave any runs
+              if (s.overs === 0 && s.balls === 0 && s.wickets === 0 && s.runs === 0) return null;
               return (
                 <tr key={p.id} className="border-b border-gray-50 last:border-0 hover:bg-red-50/30 transition">
                   <td className="px-6 py-4 font-black text-gray-900">{p.name}</td>

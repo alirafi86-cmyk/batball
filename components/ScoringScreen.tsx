@@ -212,9 +212,18 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
 
       if (!isGameOver) {
         if (overFinished && nextTotalBalls < currentSettings.totalOvers * 6) setShowBowlerSelect(true);
-        if (nextStrikerId === '' && nextWickets < currentSettings.playersPerTeam - 1) {
+        
+        // Check if there are available batsmen before prompting
+        const availableBatsmen = currentBattingTeam.players.filter(p => 
+          p.id !== newState.strikerId && 
+          p.id !== newState.nonStrikerId && 
+          !newState.retiredPlayerIds.includes(p.id) && 
+          !newState.matchHistory.some(b => b.innings === newState.currentInnings && b.strikerId === p.id && b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED)
+        );
+        
+        if (nextStrikerId === '' && nextWickets < currentSettings.playersPerTeam - 1 && availableBatsmen.length > 0) {
           setShowBatterSelect({ active: true, target: 'striker', forceSelection: true });
-        } else if (nextNonStrikerId === '' && nextWickets < currentSettings.playersPerTeam - 1) {
+        } else if (nextNonStrikerId === '' && nextWickets < currentSettings.playersPerTeam - 1 && availableBatsmen.length > 0) {
           setShowBatterSelect({ active: true, target: 'nonStriker', forceSelection: true });
         }
       }
@@ -567,9 +576,15 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
                     setState(s => {
                       let newStriker = s.strikerId;
                       let newNonStriker = s.nonStrikerId;
-                      // Remove out batter, add new batter to striker
-                      if (showBatterSelect.runoutOutId === s.strikerId) newStriker = showBatterSelect.runoutNewId!;
-                      if (showBatterSelect.runoutOutId === s.nonStrikerId) newStriker = showBatterSelect.runoutNewId!;
+                      // If out batsman was striker, new batsman takes striker end
+                      if (showBatterSelect.runoutOutId === s.strikerId) {
+                        newStriker = showBatterSelect.runoutNewId!;
+                      } 
+                      // If out batsman was non-striker, non-striker becomes striker, new batsman takes non-striker
+                      else if (showBatterSelect.runoutOutId === s.nonStrikerId) {
+                        newStriker = s.strikerId;
+                        newNonStriker = showBatterSelect.runoutNewId!;
+                      }
                       return { ...s, strikerId: newStriker, nonStrikerId: newNonStriker };
                     });
                     setShowBatterSelect({ active: false, target: 'striker' });
@@ -578,9 +593,15 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
                     setState(s => {
                       let newStriker = s.strikerId;
                       let newNonStriker = s.nonStrikerId;
-                      // Remove out batter, add new batter to non-striker
-                      if (showBatterSelect.runoutOutId === s.strikerId) newNonStriker = showBatterSelect.runoutNewId!;
-                      if (showBatterSelect.runoutOutId === s.nonStrikerId) newStriker = showBatterSelect.runoutNewId!;
+                      // If out batsman was striker, striker becomes non-striker, new batsman takes striker
+                      if (showBatterSelect.runoutOutId === s.strikerId) {
+                        newNonStriker = s.nonStrikerId;
+                        newStriker = showBatterSelect.runoutNewId!;
+                      } 
+                      // If out batsman was non-striker, new batsman takes non-striker end
+                      else if (showBatterSelect.runoutOutId === s.nonStrikerId) {
+                        newNonStriker = showBatterSelect.runoutNewId!;
+                      }
                       return { ...s, strikerId: newStriker, nonStrikerId: newNonStriker };
                     });
                     setShowBatterSelect({ active: false, target: 'striker' });
