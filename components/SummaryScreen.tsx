@@ -499,62 +499,71 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
       </div>
 
       {showScorecard && (
-        <div className="fixed inset-0 bg-black/70 z-[300] flex flex-col overflow-y-auto p-4">
-          <div className="flex justify-between items-center mb-4 sticky top-0 bg-black/70 py-2">
-            <h2 className="text-white font-black text-lg">{showScorecard === 'summary' ? 'Summary Card' : 'Full Scorecard'}</h2>
-            <button
-              onClick={() => setShowScorecard(null)}
-              className="text-white text-3xl hover:opacity-70 transition"
-            >
-              ×
-            </button>
-          </div>
-          <div className="flex-1 flex items-center justify-center mb-4">
-            <ScorecardImage
-              record={{
-                id: 'temp',
-                date: Date.now(),
-                settings,
-                history,
-                finalScore: {
-                  runs: stats.totalScore,
-                  wickets: stats.totalWickets,
-                  overs: overCount
-                }
-              }}
-              type={showScorecard}
-              onDownload={() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              onShare={() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-            />
-          </div>
-          <div className="flex gap-3 sticky bottom-0 bg-black/70 py-2">
-            <button
-              onClick={shareScorecardImage}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              <i className="fas fa-share-nodes"></i>
-              <span>Share Image</span>
-            </button>
-            <button
-              onClick={downloadScorecardImage}
-              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-emerald-700 transition disabled:opacity-50"
-            >
-              <i className="fas fa-download"></i>
-              <span>Download Image</span>
-            </button>
-            <button
-              onClick={() => setShowScorecard(null)}
-              className="flex-1 px-4 py-3 bg-gray-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2"
-            >
-              <i className="fas fa-times"></i>
-              <span>Close</span>
-            </button>
+        <div
+          className="fixed inset-0 bg-black/70 z-[300] flex flex-col overflow-y-auto p-4"
+          onClick={() => setShowScorecard(null)}
+        >
+          <div className="flex flex-col flex-1" onClick={(event) => event.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-black/70 py-2">
+              <h2 className="text-white font-black text-lg">{showScorecard === 'summary' ? 'Summary Card' : 'Full Scorecard'}</h2>
+              <button
+                onClick={() => setShowScorecard(null)}
+                className="text-white text-3xl hover:opacity-70 transition"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center mb-4">
+              <ScorecardImage
+                record={{
+                  id: 'temp',
+                  date: Date.now(),
+                  settings,
+                  history,
+                  finalScore: {
+                    runs: teamAStats.score,
+                    wickets: teamAStats.wickets,
+                    overs: teamAStats.overs,
+                    target: teamAStats.score + 1,
+                    winner: matchWinner === 'Tie' ? undefined : matchWinner,
+                    teamAScore: { runs: teamAStats.score, wickets: teamAStats.wickets, overs: teamAStats.overs },
+                    teamBScore: inningsTwoHistory.length > 0 ? { runs: teamBStats.score, wickets: teamBStats.wickets, overs: teamBStats.overs } : undefined
+                  }
+                }}
+                type={showScorecard}
+                onDownload={() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                onShare={() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+              />
+            </div>
+            <div className="flex gap-3 sticky bottom-0 bg-black/70 py-2">
+              <button
+                onClick={shareScorecardImage}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-blue-700 transition disabled:opacity-50"
+              >
+                <i className="fas fa-share-nodes"></i>
+                <span>Share Image</span>
+              </button>
+              <button
+                onClick={downloadScorecardImage}
+                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2 hover:bg-emerald-700 transition disabled:opacity-50"
+              >
+                <i className="fas fa-download"></i>
+                <span>Download Image</span>
+              </button>
+              <button
+                onClick={() => setShowScorecard(null)}
+                className="flex-1 px-4 py-3 bg-gray-600 text-white rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-2"
+              >
+                <i className="fas fa-times"></i>
+                <span>Close</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

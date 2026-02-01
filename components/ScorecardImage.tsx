@@ -110,7 +110,19 @@ const ScorecardImage: React.FC<ScorecardImageProps> = ({ record, type, onDownloa
               <p className="text-xs font-black uppercase tracking-widest opacity-60 mb-2">2nd Innings</p>
               <h2 className="text-2xl font-black mb-3">{record.settings.teamB.name}</h2>
               <div className="space-y-2">
-                <div className="flex justify-between text-lg font-black mb-2">
+                {record.finalScore.teamBScore ? (
+                  <>
+                    <div className="flex justify-between text-xl font-black">
+                      <span>{record.finalScore.teamBScore.runs}</span>
+                      <span>/</span>
+                      <span>{record.finalScore.teamBScore.wickets}</span>
+                    </div>
+                    <div className="text-sm opacity-80">
+                      Overs: {record.finalScore.teamBScore.overs || '0.0'}
+                    </div>
+                  </>
+                ) : null}
+                <div className="flex justify-between text-sm font-black mb-1">
                   <span>Target: {record.finalScore.target}</span>
                 </div>
                 <div className="text-xs opacity-80 text-right">

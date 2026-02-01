@@ -73,6 +73,13 @@ const App: React.FC = () => {
     setCurrentScreen(Screen.RECORD_VIEW);
   };
 
+  const handleUpdateRecords = (updatedRecords: MatchRecord[], updatedMatch?: MatchRecord) => {
+    setHistoryRecords(updatedRecords);
+    if (updatedMatch) {
+      setSelectedRecord(prev => (prev && prev.id === updatedMatch.id ? updatedMatch : prev));
+    }
+  };
+
   const handleSaveMatch = (record: MatchRecord) => {
     const updated = [record, ...historyRecords];
     setHistoryRecords(updated);
@@ -120,7 +127,7 @@ const App: React.FC = () => {
           />
         )}
         {currentScreen === Screen.RECORD_VIEW && selectedRecord && (
-          <StatsScreen records={historyRecords} initialMatch={selectedRecord} />
+          <StatsScreen records={historyRecords} initialMatch={selectedRecord} onUpdateRecords={handleUpdateRecords} />
         )}
         {currentScreen === Screen.SETUP && (
           <SetupScreen onStart={(s) => { setMatchSettings(s); setCurrentScreen(Screen.SCORING); }} />
@@ -132,7 +139,7 @@ const App: React.FC = () => {
           <SummaryScreen settings={matchSettings} history={finalHistory} onSave={handleSaveMatch} onBackToSetup={handleReset} />
         )}
         {currentScreen === Screen.STATS && (
-          <StatsScreen records={historyRecords} />
+          <StatsScreen records={historyRecords} onUpdateRecords={handleUpdateRecords} />
         )}
         {currentScreen === Screen.LIVE && matchSettings && (
           <LiveView settings={matchSettings} onManage={() => setCurrentScreen(Screen.SCORING)} />

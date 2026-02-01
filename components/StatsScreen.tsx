@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 interface StatsScreenProps {
   records: MatchRecord[];
   initialMatch?: MatchRecord | null;
+  onUpdateRecords?: (records: MatchRecord[], updatedMatch?: MatchRecord) => void;
 }
 
 interface TeamStanding {
@@ -43,7 +44,7 @@ interface PersonalStats {
   matches: { date: number, team: string, vs: string, runs: number, wickets: number, runsConceded: number }[];
 }
 
-const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
+const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch, onUpdateRecords }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<MatchRecord | null>(initialMatch || null);
@@ -147,16 +148,32 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch }) => {
 
   const handleSaveTeamNames = () => {
     if (!selectedMatch) return;
+    const prevTeamAName = selectedMatch.settings.teamA.name;
+    const prevTeamBName = selectedMatch.settings.teamB.name;
+    const updatedWinner = selectedMatch.finalScore.winner
+      ? selectedMatch.finalScore.winner === prevTeamAName
+        ? editedTeamAName
+        : selectedMatch.finalScore.winner === prevTeamBName
+          ? editedTeamBName
+          : selectedMatch.finalScore.winner
+      : undefined;
     const updated = {
       ...selectedMatch,
       settings: {
         ...selectedMatch.settings,
         teamA: { ...selectedMatch.settings.teamA, name: editedTeamAName },
         teamB: { ...selectedMatch.settings.teamB, name: editedTeamBName }
+      },
+      finalScore: {
+        ...selectedMatch.finalScore,
+        winner: updatedWinner
       }
     };
     const updatedRecords = records.map(r => r.id === selectedMatch.id ? updated : r);
     localStorage.setItem('cricket_history', JSON.stringify(updatedRecords));
+    if (onUpdateRecords) {
+      onUpdateRecords(updatedRecords, updated);
+    }
     setSelectedMatch(updated);
     setShowEditTeamNames(false);
   };
