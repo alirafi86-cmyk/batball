@@ -48,7 +48,36 @@ const App: React.FC = () => {
   useEffect(() => {
     const savedHistory = localStorage.getItem('cricket_history');
     if (savedHistory) {
-      try { setHistoryRecords(JSON.parse(savedHistory)); } catch(e) {}
+      try {
+        const parsed: MatchRecord[] = JSON.parse(savedHistory);
+        let didNormalize = false;
+        const normalized = parsed.map(rec => {
+          const teamAScore = rec.finalScore.teamAScore?.runs ?? rec.finalScore.runs ?? 0;
+          const teamBScore = rec.finalScore.teamBScore?.runs;
+          if (teamBScore === undefined) return rec;
+
+          let computedWinner: string | undefined;
+          if (teamAScore > teamBScore) computedWinner = rec.settings.teamA.name;
+          else if (teamBScore > teamAScore) computedWinner = rec.settings.teamB.name;
+
+          if (computedWinner !== rec.finalScore.winner) {
+            didNormalize = true;
+            return {
+              ...rec,
+              finalScore: {
+                ...rec.finalScore,
+                winner: computedWinner
+              }
+            };
+          }
+          return rec;
+        });
+
+        setHistoryRecords(normalized);
+        if (didNormalize) {
+          localStorage.setItem('cricket_history', JSON.stringify(normalized));
+        }
+      } catch(e) {}
     }
   }, []);
 
