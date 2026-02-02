@@ -82,10 +82,31 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch, onUpda
       if (!table[tB]) table[tB] = { name: tB, played: 0, won: 0, lost: 0, tied: 0, points: 0 };
       table[tA].played += 1;
       table[tB].played += 1;
-      if (rec.finalScore.runs > 0) {
+      const teamAScore = rec.finalScore.teamAScore?.runs ?? rec.finalScore.runs ?? 0;
+      const teamBScore = rec.finalScore.teamBScore?.runs ?? 0;
+      const winner = rec.finalScore.winner
+        ? rec.finalScore.winner
+        : teamBScore === 0
+          ? undefined
+          : teamAScore > teamBScore
+            ? tA
+            : teamBScore > teamAScore
+              ? tB
+              : undefined;
+
+      if (winner === tA) {
         table[tA].won += 1;
         table[tA].points += 2;
         table[tB].lost += 1;
+      } else if (winner === tB) {
+        table[tB].won += 1;
+        table[tB].points += 2;
+        table[tA].lost += 1;
+      } else if (teamBScore > 0 && teamAScore === teamBScore) {
+        table[tA].tied += 1;
+        table[tB].tied += 1;
+        table[tA].points += 1;
+        table[tB].points += 1;
       }
     });
     return Object.values(table).sort((a, b) => b.points - a.points);
