@@ -122,6 +122,15 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
   const isInningsOver = state.totalBalls >= currentSettings.totalOvers * 6 || state.wickets >= currentSettings.playersPerTeam - 1 || isChaseDone;
   const isOversComplete = state.totalBalls >= currentSettings.totalOvers * 6;
 
+  const handleSwapStrike = useCallback(() => {
+    if (!state.strikerId || !state.nonStrikerId) return;
+    setState(prev => ({
+      ...prev,
+      strikerId: prev.nonStrikerId,
+      nonStrikerId: prev.strikerId
+    }));
+  }, [state.strikerId, state.nonStrikerId]);
+
   const addBall = useCallback((runs: number, type: BallType, wicket: WicketType = WicketType.NONE, retiringPlayerId?: string) => {
     if (state.isMatchOver) return;
     if (isOversComplete && type === BallType.NORMAL) return; // Prevent adding normal balls after overs are complete
@@ -432,6 +441,15 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
             })}
           </div>
         </div>
+
+        <button
+          onClick={handleSwapStrike}
+          disabled={!state.strikerId || !state.nonStrikerId}
+          className="mt-3 w-full h-12 rounded-2xl bg-white/10 border border-white/20 text-white font-black uppercase tracking-widest text-[10px] flex items-center justify-center space-x-2 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <i className="fas fa-right-left text-xs"></i>
+          <span>Swap Strike</span>
+        </button>
       </div>
 
       {!state.isMatchOver && !isInningsOver ? (
