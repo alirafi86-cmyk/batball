@@ -171,13 +171,21 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ records, initialMatch, onUpda
     if (!selectedMatch) return;
     const prevTeamAName = selectedMatch.settings.teamA.name;
     const prevTeamBName = selectedMatch.settings.teamB.name;
-    const updatedWinner = selectedMatch.finalScore.winner
-      ? selectedMatch.finalScore.winner === prevTeamAName
+    const teamAScore = selectedMatch.finalScore.teamAScore?.runs ?? selectedMatch.finalScore.runs ?? 0;
+    const teamBScore = selectedMatch.finalScore.teamBScore?.runs;
+    const hasSecondInnings = selectedMatch.finalScore.teamBScore !== undefined;
+    let updatedWinner = selectedMatch.finalScore.winner;
+    if (hasSecondInnings && teamBScore !== undefined) {
+      if (teamBScore > teamAScore) updatedWinner = editedTeamBName;
+      else if (teamAScore > teamBScore) updatedWinner = editedTeamAName;
+      else updatedWinner = undefined;
+    } else if (updatedWinner) {
+      updatedWinner = updatedWinner === prevTeamAName
         ? editedTeamAName
-        : selectedMatch.finalScore.winner === prevTeamBName
+        : updatedWinner === prevTeamBName
           ? editedTeamBName
-          : selectedMatch.finalScore.winner
-      : undefined;
+          : updatedWinner;
+    }
     const updated = {
       ...selectedMatch,
       settings: {
