@@ -45,54 +45,6 @@ const App: React.FC = () => {
     nextScreen: Screen.DASHBOARD 
   });
 
-  useEffect(() => {
-    const savedHistory = localStorage.getItem('cricket_history');
-    if (savedHistory) {
-      try {
-        const parsed: MatchRecord[] = JSON.parse(savedHistory);
-        const loaded = parsed.map(rec => {
-          const historyKey = 'match_history_' + rec.id;
-          const savedHist = localStorage.getItem(historyKey);
-          if (savedHist) {
-            try {
-              rec.history = JSON.parse(savedHist);
-            } catch(e) {
-              rec.history = [];
-            }
-          }
-          return rec;
-        });
-        let didNormalize = false;
-        const normalized = loaded.map(rec => {
-          const teamAScore = rec.finalScore.teamAScore?.runs ?? rec.finalScore.runs ?? 0;
-          const teamBScore = rec.finalScore.teamBScore?.runs;
-          if (teamBScore === undefined) return rec;
-
-          let computedWinner: string | undefined;
-          if (teamAScore > teamBScore) computedWinner = rec.settings.teamA.name;
-          else if (teamBScore > teamAScore) computedWinner = rec.settings.teamB.name;
-
-          if (computedWinner !== rec.finalScore.winner) {
-            didNormalize = true;
-            return {
-              ...rec,
-              finalScore: {
-                ...rec.finalScore,
-                winner: computedWinner
-              }
-            };
-          }
-          return rec;
-        });
-
-        setHistoryRecords(normalized);
-        if (didNormalize) {
-          localStorage.setItem('cricket_history', JSON.stringify(normalized.map(rec => ({ ...rec, history: [] }))));
-        }
-      } catch(e) {}
-    }
-  }, []);
-
   const handleAuthSuccess = () => {
     const { nextScreen, pendingSettings } = showAuthModal;
     if (pendingSettings) {
@@ -108,24 +60,21 @@ const App: React.FC = () => {
     setCurrentScreen(nextScreen);
     setShowAuthModal({ active: false, nextScreen: Screen.DASHBOARD });
   };
-
   const handleViewRecord = (record: MatchRecord) => {
     setSelectedRecord(record);
     setCurrentScreen(Screen.RECORD_VIEW);
   };
 
-  const handleUpdateRecords = (updatedRecords: MatchRecord[], updatedMatch?: MatchRecord) => {
-    setHistoryRecords(updatedRecords);
-    if (updatedMatch) {
-      setSelectedRecord(prev => (prev && prev.id === updatedMatch.id ? updatedMatch : prev));
-    }
-  };
+  // const handleSaveMatch = (record: MatchRecord) => {
+  //   addDoc(collection(db, 'matches'), record);
+  //   localStorage.removeItem('active_match_settings');
+  //   localStorage.removeItem('active_match_state');
+  //   setMatchSettings(null);
+  //   setCurrentScreen(Screen.DASHBOARD);
+  // };
 
   const handleSaveMatch = (record: MatchRecord) => {
-    const historyKey = 'match_history_' + record.id;
-    localStorage.setItem(historyKey, JSON.stringify(record.history));
-    const recordWithoutHistory = { ...record, history: [] };
-    const updated = [recordWithoutHistory, ...historyRecords];
+    const updated = [record, ...historyRecords];
     setHistoryRecords(updated);
     localStorage.setItem('cricket_history', JSON.stringify(updated));
     const registry = JSON.parse(localStorage.getItem('match_registry') || '[]');
@@ -133,12 +82,6 @@ const App: React.FC = () => {
     localStorage.removeItem('active_match_settings');
     localStorage.removeItem('active_match_state');
     setMatchSettings(null);
-    setCurrentScreen(Screen.DASHBOARD);
-  };
-
-  const handleReset = () => {
-    setMatchSettings(null);
-    setSelectedRecord(null);
     setCurrentScreen(Screen.DASHBOARD);
   };
 
@@ -171,7 +114,7 @@ const App: React.FC = () => {
           />
         )}
         {currentScreen === Screen.RECORD_VIEW && selectedRecord && (
-          <StatsScreen records={historyRecords} initialMatch={selectedRecord} onUpdateRecords={handleUpdateRecords} />
+          <StatsScreen records={historyRecords} initialMatch={selectedRecord} />
         )}
         {currentScreen === Screen.SETUP && (
           <SetupScreen onStart={(s) => { setMatchSettings(s); setCurrentScreen(Screen.SCORING); }} />
@@ -183,7 +126,7 @@ const App: React.FC = () => {
           <SummaryScreen settings={matchSettings} history={finalHistory} onSave={handleSaveMatch} onBackToSetup={handleReset} />
         )}
         {currentScreen === Screen.STATS && (
-          <StatsScreen records={historyRecords} onUpdateRecords={handleUpdateRecords} />
+          <StatsScreen records={historyRecords} />
         )}
         {currentScreen === Screen.LIVE && matchSettings && (
           <LiveView settings={matchSettings} onManage={() => setCurrentScreen(Screen.SCORING)} />

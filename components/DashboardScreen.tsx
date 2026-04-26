@@ -129,6 +129,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
                        if (!window.confirm(`Delete match ${m.settings.teamA.name} vs ${m.settings.teamB.name}?\n\nThis will permanently remove this live match. This action cannot be undone.`)) return;
                        const registry = JSON.parse(localStorage.getItem('match_registry') || '[]');
                        localStorage.setItem('match_registry', JSON.stringify(registry.filter((x: any) => x.matchId !== m.matchId)));
+                       // Also clear the active match data to prevent it from persisting
+                       localStorage.removeItem('active_match_settings');
+                       localStorage.removeItem('active_match_state');
                        window.location.reload();
                      }} className="bg-red-50 text-red-600 font-black text-[9px] uppercase tracking-widest transition flex flex-col items-center justify-center py-2 px-1 hover:bg-red-100">
                        <i className="fas fa-trash-can text-xs mb-0.5"></i> Delete

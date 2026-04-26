@@ -1,0 +1,1135 @@
+{
+  "id": "match_1777093295827",
+  "date": 1777093295827,
+  "settings": {
+    "matchId": "match_1777093295827",
+    "totalOvers": 10,
+    "playersPerTeam": 11,
+    "retirementLimit": 25,
+    "teamA": {
+      "id": "teamA",
+      "name": "Sultan",
+      "players": [
+        {
+          "id": "player_1773459010291",
+          "name": "Player 1"
+        },
+        {
+          "id": "player_1777091889185",
+          "name": "Player 2"
+        },
+        {
+          "id": "player_1777091900137",
+          "name": "Player 3"
+        },
+        {
+          "id": "player_1777091906038",
+          "name": "Player 4"
+        },
+        {
+          "id": "player_1777091921608",
+          "name": "Player 5"
+        },
+        {
+          "id": "player_1777091929581",
+          "name": "Player 6"
+        },
+        {
+          "id": "player_1777091894787",
+          "name": "Player 7"
+        },
+        {
+          "id": "player_1777091900137",
+          "name": "Player 8"
+        },
+        {
+          "id": "player_1777091906038",
+          "name": "Player 9"
+        },
+        {
+          "id": "player_1777091921608",
+          "name": "Player 10"
+        },
+        {
+          "id": "player_1777091929581",
+          "name": "Player 11"
+        }
+      ],
+      "logo": null
+    },
+    "teamB": {
+      "id": "teamB",
+      "name": "Hunters",
+      "players": [
+        {
+          "id": "ilijqtxnu",
+          "name": "Player 1"
+        },
+        {
+          "id": "0jh2sm1bv",
+          "name": "Player 2"
+        },
+        {
+          "id": "i6c4w0asv",
+          "name": "Player 3"
+        },
+        {
+          "id": "uax3ybr2i",
+          "name": "Player 4"
+        },
+        {
+          "id": "10acprcam",
+          "name": "Player 5"
+        },
+        {
+          "id": "rdabzpmfu",
+          "name": "Player 6"
+        },
+        {
+          "id": "01mimq2iv",
+          "name": "Player 7"
+        },
+        {
+          "id": "player_1773459035079",
+          "name": "Player 8"
+        },
+        {
+          "id": "player_1777091889185",
+          "name": "Player 9"
+        },
+        {
+          "id": "player_1777091900137",
+          "name": "Player 10"
+        },
+        {
+          "id": "player_1777091921608",
+          "name": "Player 11"
+        }
+      ],
+      "logo": null
+    },
+    "scorerPin": "1234",
+    "tossWinner": "teamA",
+    "tossDecision": "bat"
+  },
+  "history": [
+    {
+      "id": "7bu2jw28h",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777093295827,
+      "over": 3
+    },
+    {
+      "id": "msffkkb0g",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777093363554,
+      "over": 3
+    },
+    {
+      "id": "xp9q1b6bh",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777093392343,
+      "over": 3
+    },
+    {
+      "id": "16uokkdkr",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093444099,
+      "over": 4
+    },
+    {
+      "id": "6cb224bwu",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093468185,
+      "over": 4
+    },
+    {
+      "id": "30em57o70",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093489070,
+      "over": 4
+    },
+    {
+      "id": "ynqnjtmi5",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093510178,
+      "over": 4
+    },
+    {
+      "id": "e9p4pgwgc",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093527578,
+      "over": 4
+    },
+    {
+      "id": "4gpsjc1lg",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093551034,
+      "over": 4
+    },
+    {
+      "id": "mki8p4oc2",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "0jh2sm1bv",
+      "innings": 1,
+      "timestamp": 1777093583774,
+      "over": 4
+    },
+    {
+      "id": "g5vrfz7ym",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "RETIRED",
+      "strikerId": "player_1773459010291",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093595828,
+      "over": 5
+    },
+    {
+      "id": "suzn88tmy",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093622198,
+      "over": 5
+    },
+    {
+      "id": "x16fryy50",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093654621,
+      "over": 5
+    },
+    {
+      "id": "n8c16zzop",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093691545,
+      "over": 5
+    },
+    {
+      "id": "fwset52w2",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093713949,
+      "over": 5
+    },
+    {
+      "id": "amarnbq79",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093743860,
+      "over": 5
+    },
+    {
+      "id": "l5ssmnsdn",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "CAUGHT",
+      "strikerId": "player_1777091889185",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093809195,
+      "over": 5
+    },
+    {
+      "id": "g4o4kcg66",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "i6c4w0asv",
+      "innings": 1,
+      "timestamp": 1777093824609,
+      "over": 5
+    },
+    {
+      "id": "ftsiwoerx",
+      "runs": 2,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777093926006,
+      "over": 6
+    },
+    {
+      "id": "3fpgpik4w",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777093954473,
+      "over": 6
+    },
+    {
+      "id": "s8e8atswt",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777093989562,
+      "over": 6
+    },
+    {
+      "id": "395n1z5aq",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777094017119,
+      "over": 6
+    },
+    {
+      "id": "yxeq3z09g",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777094053578,
+      "over": 6
+    },
+    {
+      "id": "uv2o0w66f",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "ilijqtxnu",
+      "innings": 1,
+      "timestamp": 1777094084915,
+      "over": 6
+    },
+    {
+      "id": "aprf2e5jj",
+      "runs": 2,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "uax3ybr2i",
+      "innings": 1,
+      "timestamp": 1777094126593,
+      "over": 7
+    },
+    {
+      "id": "m9mt8u0qo",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "uax3ybr2i",
+      "innings": 1,
+      "timestamp": 1777094148732,
+      "over": 7
+    },
+    {
+      "id": "4k1o6916q",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "uax3ybr2i",
+      "innings": 1,
+      "timestamp": 1777094183465,
+      "over": 7
+    },
+    {
+      "id": "w2vkgjmsa",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "uax3ybr2i",
+      "innings": 1,
+      "timestamp": 1777094200056,
+      "over": 7
+    },
+    {
+      "id": "v75tive0r",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "BOWLED",
+      "strikerId": "player_1777091921608",
+      "bowlerId": "uax3ybr2i",
+      "innings": 1,
+      "timestamp": 1777094235358,
+      "over": 7
+    },
+    {
+      "id": "p3765rtkg",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "uax3ybr2i",
+      "innings": 1,
+      "timestamp": 1777094263873,
+      "over": 7
+    },
+    {
+      "id": "qe2qxr92p",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094285393,
+      "over": 8
+    },
+    {
+      "id": "xmomr3wed",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094305548,
+      "over": 8
+    },
+    {
+      "id": "9yshdr3mz",
+      "runs": 6,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094331221,
+      "over": 8
+    },
+    {
+      "id": "nhd8wnyj1",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094355024,
+      "over": 8
+    },
+    {
+      "id": "94o3m3hze",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094382763,
+      "over": 8
+    },
+    {
+      "id": "k2zrwhsje",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "RETIRED",
+      "strikerId": "player_1777091906038",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094430374,
+      "over": 8
+    },
+    {
+      "id": "8sca796ps",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "10acprcam",
+      "innings": 1,
+      "timestamp": 1777094442676,
+      "over": 8
+    },
+    {
+      "id": "aa655io30",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094478817,
+      "over": 9
+    },
+    {
+      "id": "054klmfbu",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091929581",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094494387,
+      "over": 9
+    },
+    {
+      "id": "elaiqj8j0",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091929581",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094535158,
+      "over": 9
+    },
+    {
+      "id": "xjx5h2a8j",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094553079,
+      "over": 9
+    },
+    {
+      "id": "0iix03zta",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094574052,
+      "over": 9
+    },
+    {
+      "id": "xskb58d5h",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091900137",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094590473,
+      "over": 9
+    },
+    {
+      "id": "jd55bvexo",
+      "runs": 6,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "player_1777091929581",
+      "bowlerId": "rdabzpmfu",
+      "innings": 1,
+      "timestamp": 1777094614110,
+      "over": 9
+    },
+    {
+      "id": "ektg145sx",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777094969702,
+      "over": 0
+    },
+    {
+      "id": "busdb6b0t",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "01mimq2iv",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777094990324,
+      "over": 0
+    },
+    {
+      "id": "h85tgw9ky",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "01mimq2iv",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095014489,
+      "over": 0
+    },
+    {
+      "id": "udnsf80kh",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "01mimq2iv",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095035690,
+      "over": 0
+    },
+    {
+      "id": "f0n6ugpdx",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "01mimq2iv",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095054043,
+      "over": 0
+    },
+    {
+      "id": "mworhauwk",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "CAUGHT",
+      "strikerId": "01mimq2iv",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095091035,
+      "over": 0
+    },
+    {
+      "id": "nf1kk4gyw",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095125679,
+      "over": 0
+    },
+    {
+      "id": "y4zndb1ig",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095162673,
+      "over": 0
+    },
+    {
+      "id": "4ubz3urec",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095184661,
+      "over": 0
+    },
+    {
+      "id": "uqhtgjuf5",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095211318,
+      "over": 0
+    },
+    {
+      "id": "u4rmogg9c",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091921608",
+      "innings": 2,
+      "timestamp": 1777095226852,
+      "over": 0
+    },
+    {
+      "id": "as1kbqtq0",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1773459010291",
+      "innings": 2,
+      "timestamp": 1777095270896,
+      "over": 1
+    },
+    {
+      "id": "qtanhcgkc",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1773459010291",
+      "innings": 2,
+      "timestamp": 1777095287333,
+      "over": 1
+    },
+    {
+      "id": "w0ba2mput",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1773459010291",
+      "innings": 2,
+      "timestamp": 1777095316989,
+      "over": 1
+    },
+    {
+      "id": "zq0p4wwsm",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1773459010291",
+      "innings": 2,
+      "timestamp": 1777095343611,
+      "over": 1
+    },
+    {
+      "id": "mqcguguvi",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1773459010291",
+      "innings": 2,
+      "timestamp": 1777095365666,
+      "over": 1
+    },
+    {
+      "id": "r1sccaqm6",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1773459010291",
+      "innings": 2,
+      "timestamp": 1777095389968,
+      "over": 1
+    },
+    {
+      "id": "e6it6xai0",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095432027,
+      "over": 2
+    },
+    {
+      "id": "ypjyvi1lk",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095453218,
+      "over": 2
+    },
+    {
+      "id": "tunui6cyb",
+      "runs": 6,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095470321,
+      "over": 2
+    },
+    {
+      "id": "q080te9no",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095491809,
+      "over": 2
+    },
+    {
+      "id": "lbg6kgf8l",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095511962,
+      "over": 2
+    },
+    {
+      "id": "f0hfjveyn",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095531051,
+      "over": 2
+    },
+    {
+      "id": "58iz38vih",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091894787",
+      "innings": 2,
+      "timestamp": 1777095554839,
+      "over": 2
+    },
+    {
+      "id": "ablqjl4zn",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "RETIRED",
+      "strikerId": "10acprcam",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095568427,
+      "over": 3
+    },
+    {
+      "id": "gha50z7bx",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "RETIRED",
+      "strikerId": "0jh2sm1bv",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095571208,
+      "over": 3
+    },
+    {
+      "id": "debvk6fg4",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095611201,
+      "over": 3
+    },
+    {
+      "id": "4329w614c",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095632091,
+      "over": 3
+    },
+    {
+      "id": "3tj2nlplx",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095654359,
+      "over": 3
+    },
+    {
+      "id": "ds0lqcrhw",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095675263,
+      "over": 3
+    },
+    {
+      "id": "edqmaal55",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095715857,
+      "over": 3
+    },
+    {
+      "id": "qzrkplyqu",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095717802,
+      "over": 3
+    },
+    {
+      "id": "dx409v9m6",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091889185",
+      "innings": 2,
+      "timestamp": 1777095739409,
+      "over": 3
+    },
+    {
+      "id": "cftiih64c",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1773459035079",
+      "innings": 2,
+      "timestamp": 1777095796620,
+      "over": 4
+    },
+    {
+      "id": "12fhj8r1l",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1773459035079",
+      "innings": 2,
+      "timestamp": 1777095835424,
+      "over": 4
+    },
+    {
+      "id": "0ic08waj9",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1773459035079",
+      "innings": 2,
+      "timestamp": 1777095844062,
+      "over": 4
+    },
+    {
+      "id": "a3lhnfgnv",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1773459035079",
+      "innings": 2,
+      "timestamp": 1777095883868,
+      "over": 4
+    },
+    {
+      "id": "inmw2sv0d",
+      "runs": 6,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1773459035079",
+      "innings": 2,
+      "timestamp": 1777095902974,
+      "over": 4
+    },
+    {
+      "id": "cd8er4ysq",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1773459035079",
+      "innings": 2,
+      "timestamp": 1777095925444,
+      "over": 4
+    },
+    {
+      "id": "i9xm27q38",
+      "runs": 0,
+      "type": "WIDE",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096008913,
+      "over": 5
+    },
+    {
+      "id": "fu5eygqju",
+      "runs": 0,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096024445,
+      "over": 5
+    },
+    {
+      "id": "lwr7v2we9",
+      "runs": 6,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096047684,
+      "over": 5
+    },
+    {
+      "id": "f4y31g1ac",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096107835,
+      "over": 5
+    },
+    {
+      "id": "76xsxut6j",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096133833,
+      "over": 5
+    },
+    {
+      "id": "efycjwn39",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "ilijqtxnu",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096179695,
+      "over": 5
+    },
+    {
+      "id": "8rvwa12mr",
+      "runs": 1,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096198859,
+      "over": 5
+    },
+    {
+      "id": "q9etoszx5",
+      "runs": 4,
+      "type": "NORMAL",
+      "wicket": "NONE",
+      "strikerId": "uax3ybr2i",
+      "bowlerId": "player_1777091900137",
+      "innings": 2,
+      "timestamp": 1777096252253,
+      "over": 6
+    }
+  ],
+  "finalScore": {
+    "runs": 64,
+    "wickets": 4,
+    "overs": "10.2",
+    "target": 65,
+    "winner": "Hunters",
+    "teamAScore": {
+      "runs": 64,
+      "wickets": 4,
+      "overs": "10.2"
+    },
+    "teamBScore": {
+      "runs": 68,
+      "wickets": 1,
+      "overs": "6.3"
+    }
+  }
+}
