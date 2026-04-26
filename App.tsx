@@ -50,8 +50,20 @@ const App: React.FC = () => {
     if (savedHistory) {
       try {
         const parsed: MatchRecord[] = JSON.parse(savedHistory);
+        const loaded = parsed.map(rec => {
+          const historyKey = 'match_history_' + rec.id;
+          const savedHist = localStorage.getItem(historyKey);
+          if (savedHist) {
+            try {
+              rec.history = JSON.parse(savedHist);
+            } catch(e) {
+              rec.history = [];
+            }
+          }
+          return rec;
+        });
         let didNormalize = false;
-        const normalized = parsed.map(rec => {
+        const normalized = loaded.map(rec => {
           const teamAScore = rec.finalScore.teamAScore?.runs ?? rec.finalScore.runs ?? 0;
           const teamBScore = rec.finalScore.teamBScore?.runs;
           if (teamBScore === undefined) return rec;
@@ -75,7 +87,7 @@ const App: React.FC = () => {
 
         setHistoryRecords(normalized);
         if (didNormalize) {
-          localStorage.setItem('cricket_history', JSON.stringify(normalized));
+          localStorage.setItem('cricket_history', JSON.stringify(normalized.map(rec => ({ ...rec, history: [] }))));
         }
       } catch(e) {}
     }
@@ -110,7 +122,10 @@ const App: React.FC = () => {
   };
 
   const handleSaveMatch = (record: MatchRecord) => {
-    const updated = [record, ...historyRecords];
+    const historyKey = 'match_history_' + record.id;
+    localStorage.setItem(historyKey, JSON.stringify(record.history));
+    const recordWithoutHistory = { ...record, history: [] };
+    const updated = [recordWithoutHistory, ...historyRecords];
     setHistoryRecords(updated);
     localStorage.setItem('cricket_history', JSON.stringify(updated));
     const registry = JSON.parse(localStorage.getItem('match_registry') || '[]');

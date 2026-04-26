@@ -481,8 +481,8 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
             <button onClick={() => addBall(6, activeExtra)} className="h-20 rounded-2xl bg-[#facc15] text-[#004e35] shadow-md flex items-center justify-center col-span-2 transition active:scale-95 border-b-4 border-yellow-700 font-black text-3xl">6</button>
             
             <button 
-              onClick={() => setActiveExtra(prev => prev === BallType.WIDE ? BallType.NORMAL : BallType.WIDE)} 
-              className={`h-16 rounded-2xl border-2 font-black text-xs col-span-2 uppercase transition-colors ${activeExtra === BallType.WIDE ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-emerald-50 border-emerald-100 text-[#004e35]'}`}
+              onClick={() => addBall(0, BallType.WIDE)} 
+              className="h-16 rounded-2xl border-2 font-black text-xs col-span-2 uppercase bg-emerald-600 text-white border-emerald-700"
             >
               Wide (+1)
             </button>

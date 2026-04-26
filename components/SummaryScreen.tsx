@@ -34,7 +34,12 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
     return { totalScore, totalWickets };
   }, [inningsOneHistory]);
 
-  const overCount = `${Math.floor(inningsOneHistory.filter(b => b.type === BallType.NORMAL).length / 6)}.${inningsOneHistory.filter(b => b.type === BallType.NORMAL).length % 6}`;
+  const overCount = useMemo(() => {
+    const normalBalls = inningsOneHistory.filter(b => b.type === BallType.NORMAL).length;
+    const overs = Math.floor(normalBalls / 6);
+    const balls = normalBalls % 6;
+    return overs >= settings.totalOvers ? `${settings.totalOvers}.0` : `${overs}.${balls}`;
+  }, [inningsOneHistory, settings.totalOvers]);
 
   const handleShareText = () => {
     // Calculate both innings for share text
@@ -56,8 +61,8 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
     
     const teamABalls = history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length;
     const teamBBalls = history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length;
-    const teamAOvers = `${Math.floor(teamABalls / 6)}.${teamABalls % 6}`;
-    const teamBOvers = `${Math.floor(teamBBalls / 6)}.${teamBBalls % 6}`;
+    const teamAOvers = Math.floor(teamABalls / 6) >= settings.totalOvers ? `${settings.totalOvers}.0` : `${Math.floor(teamABalls / 6)}.${teamABalls % 6}`;
+    const teamBOvers = Math.floor(teamBBalls / 6) >= settings.totalOvers ? `${settings.totalOvers}.0` : `${Math.floor(teamBBalls / 6)}.${teamBBalls % 6}`;
     
     let resultText = '';
     if (teamBScore > teamAScore) {
@@ -106,8 +111,8 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
       }
     });
     
-    const teamAOvers = `${Math.floor(history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length % 6}`;
-    const teamBOvers = `${Math.floor(history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length % 6}`;
+    const teamAOvers = Math.floor(history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length / 6) >= settings.totalOvers ? `${settings.totalOvers}.0` : `${Math.floor(history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.innings === 1 && b.type === BallType.NORMAL).length % 6}`;
+    const teamBOvers = Math.floor(history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length / 6) >= settings.totalOvers ? `${settings.totalOvers}.0` : `${Math.floor(history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length / 6)}.${history.filter(b => b.innings === 2 && b.type === BallType.NORMAL).length % 6}`;
     
     let winner = undefined;
     if (teamBScore > teamAScore) {
@@ -355,7 +360,10 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
         if (ball.type === BallType.NORMAL) balls += 1;
       }
     });
-    return { score, wickets, overs: `${Math.floor(balls / 6)}.${balls % 6}` };
+    const overs = Math.floor(balls / 6);
+    const ballsInOver = balls % 6;
+    const oversStr = overs >= settings.totalOvers ? `${settings.totalOvers}.0` : `${overs}.${ballsInOver}`;
+    return { score, wickets, overs: oversStr };
   })();
   
   const teamBStats = (() => {
@@ -367,7 +375,10 @@ const SummaryScreen: React.FC<SummaryScreenProps> = ({ settings, history, onSave
         if (ball.type === BallType.NORMAL) balls += 1;
       }
     });
-    return { score, wickets, overs: `${Math.floor(balls / 6)}.${balls % 6}` };
+    const overs = Math.floor(balls / 6);
+    const ballsInOver = balls % 6;
+    const oversStr = overs >= settings.totalOvers ? `${settings.totalOvers}.0` : `${overs}.${ballsInOver}`;
+    return { score, wickets, overs: oversStr };
   })();
   
   const matchWinner = teamBStats.score > teamAStats.score ? settings.teamB.name : (teamAStats.score > teamBStats.score ? settings.teamA.name : 'Tie');
