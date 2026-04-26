@@ -368,7 +368,19 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
 
         <div className="grid grid-cols-2 gap-3 relative z-10 mb-4">
           <div 
-            onClick={() => !state.strikerId && setShowBatterSelect({ active: true, target: 'striker' })}
+            onClick={() => {
+              if (!state.strikerId && !state.isMatchOver) {
+                const availableBatsmen = currentBattingTeam.players.filter(p => 
+                  p.id !== state.strikerId && 
+                  p.id !== state.nonStrikerId && 
+                  !state.retiredPlayerIds.includes(p.id) && 
+                  !state.matchHistory.some(b => b.innings === state.currentInnings && b.strikerId === p.id && b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED)
+                );
+                if (availableBatsmen.length > 0) {
+                  setShowBatterSelect({ active: true, target: 'striker' });
+                }
+              }
+            }}
             className={`p-4 rounded-3xl border flex flex-col justify-between transition-all cursor-pointer ${strikerStats.balls >= currentSettings.retirementLimit ? 'bg-amber-500/90 border-amber-300' : 'bg-black/20 border-white/10'}`}
           >
             <div>
@@ -389,7 +401,19 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
           </div>
 
           <div 
-            onClick={() => !state.nonStrikerId && setShowBatterSelect({ active: true, target: 'nonStriker' })}
+            onClick={() => {
+              if (!state.nonStrikerId && !state.isMatchOver) {
+                const availableBatsmen = currentBattingTeam.players.filter(p => 
+                  p.id !== state.strikerId && 
+                  p.id !== state.nonStrikerId && 
+                  !state.retiredPlayerIds.includes(p.id) && 
+                  !state.matchHistory.some(b => b.innings === state.currentInnings && b.strikerId === p.id && b.wicket !== WicketType.NONE && b.wicket !== WicketType.RETIRED)
+                );
+                if (availableBatsmen.length > 0) {
+                  setShowBatterSelect({ active: true, target: 'nonStriker' });
+                }
+              }
+            }}
             className={`p-4 rounded-3xl border flex flex-col justify-between transition-all cursor-pointer ${nonStrikerStats.balls >= currentSettings.retirementLimit ? 'bg-amber-500/90 border-amber-300' : 'bg-black/10 border-white/5 opacity-70'}`}
           >
             <div>
@@ -598,10 +622,9 @@ const ScoringScreen: React.FC<ScoringScreenProps> = ({ settings, onFinish, onUpd
                       if (showBatterSelect.runoutOutId === s.strikerId) {
                         newStriker = showBatterSelect.runoutNewId!;
                       } 
-                      // If out batsman was non-striker, non-striker becomes striker, new batsman takes non-striker
+                      // If out batsman was non-striker, new batsman takes striker end (current striker stays)
                       else if (showBatterSelect.runoutOutId === s.nonStrikerId) {
-                        newStriker = s.strikerId;
-                        newNonStriker = showBatterSelect.runoutNewId!;
+                        newStriker = showBatterSelect.runoutNewId!;
                       }
                       return { ...s, strikerId: newStriker, nonStrikerId: newNonStriker };
                     });
