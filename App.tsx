@@ -85,6 +85,13 @@ const App: React.FC = () => {
     setCurrentScreen(Screen.DASHBOARD);
   };
 
+  const handleReset = () => {
+    setMatchSettings(null);
+    setFinalHistory([]);
+    setSelectedRecord(null);
+    setCurrentScreen(Screen.DASHBOARD);
+  };
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[#f4f7f4] pb-12">
